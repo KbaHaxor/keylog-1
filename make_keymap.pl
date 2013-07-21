@@ -117,13 +117,7 @@ sub clean
 sub ismod
 {
 	my ($sym) = @_;
-	my %mods = map { $_ => 1 }
-	(
-		'Control',
-		'Shift',
-		'Alt',
-	);
-	(exists $mods{$sym}) ? 'Y' : 'N';
+	(exists $mod{$sym}) ? 'Y' : 'N';
 }
 
 # discard keymaps line
