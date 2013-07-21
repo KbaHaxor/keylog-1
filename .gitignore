@@ -3,9 +3,16 @@ aclocal.m4
 autom4te.cache
 .deps
 config.h.in
+config.h
+config.log
+config.status
 configure
 depcomp
 install-sh
 Makefile.in
 Makefile
 missing
+stamp-h1
+
+*.o
+keylog
