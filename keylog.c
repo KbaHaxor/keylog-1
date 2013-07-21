@@ -22,6 +22,7 @@ struct state
 	const char *normal[256];
 	const char *shifted[256];
 	const char *ismod[256];
+	int isdown[256];
 };
 
 static struct parms parms =
@@ -35,7 +36,8 @@ static struct state state =
 	0,
 	{ NULL },
 	{ NULL },
-	{ NULL }
+	{ NULL },
+	{ 0 }
 };
 
 static void die (const char *msg)
@@ -144,22 +146,23 @@ static void prepare_system (const struct parms *p, struct state *s)
 	}
 }
 
-static const char * event_kind (unsigned int v)
-{
-	switch (v)
-	{
-	case 0:  return "U";
-	case 1:  return "D";
-	case 2:  return "R";
-	default: return "?";
-	}
-}
-
 static const char * event_name (unsigned short c)
 {
-	if (c > 0xff)
-		die("0xff");
 	return state.normal[c];
+}
+
+static void show_modifiers (struct state *s)
+{
+	int i;
+	for (i=1; i<255; i++)
+		if (s->isdown[i])
+			if (*s->ismod[i] == 'Y')
+				printf("%s-", event_name(i));
+}
+
+static void show_key (unsigned short c)
+{
+	printf("%s ", event_name(c));
 }
 
 static void process_events (const struct parms *p, struct state *s)
@@ -171,8 +174,34 @@ static void process_events (const struct parms *p, struct state *s)
 		if (e.type != EV_KEY)
 			continue;
 
-		printf("%s-%s ", event_kind(e.value), event_name(e.code));
-		fflush(stdout);
+		if (e.code > 255)
+		{
+			fprintf(stderr,"IGNORING code %d\n", e.code);
+			continue;
+		}
+
+		switch (e.value)
+		{
+		case 0:   // key up
+			s->isdown[e.code] = 0;
+			break;
+
+		case 1:   // key down
+			s->isdown[e.code] = 1;
+			if (*s->ismod[e.code] == 'N')
+			{
+				show_modifiers(s);
+				show_key(e.code);
+				fflush(stdout);
+			}
+			break;
+
+		case 2:   // key repeat
+			break;
+
+		default:
+			die("value");
+		}
 	}
 }
 
