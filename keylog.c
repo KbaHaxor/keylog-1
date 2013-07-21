@@ -157,7 +157,7 @@ static void show_modifiers (struct state *s)
 	for (i=1; i<255; i++)
 		if (s->isdown[i])
 			if (*s->ismod[i] == 'Y')
-				printf("%s-", event_name(i));
+				printf("%s", event_name(i));
 }
 
 static void show_key (unsigned short c)

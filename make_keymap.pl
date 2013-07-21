@@ -96,13 +96,21 @@ qw(
 	Up
 	void
 );
-	
+
+my %mod = map { $_ => uc substr($_,0,1) . "-"}
+qw(
+	Control
+	Alt
+	Shift
+);
+
 sub clean
 {
 	my ($sym) = @_;
 	$sym =~ s/^\+//;
 	$sym = $replace{$sym} if exists $replace{$sym};
 	$sym = "<" . lc $sym . ">" if exists $mark{$sym};
+	$sym = $mod{$sym} if exists $mod{$sym};
 	$sym;
 }
 
