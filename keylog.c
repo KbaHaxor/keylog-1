@@ -1,10 +1,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <getopt.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <linux/input.h>
 
 struct parms
 {
@@ -19,7 +21,7 @@ struct state
 
 static struct parms parms =
 {
-	"/dev/input/event2",
+	NULL,
 	NULL
 };
 
@@ -84,11 +86,27 @@ static void open_keyboard (const struct parms *p, struct state *s)
 	s->fd = fd;
 }
 
+static void process_events (const struct parms *p, struct state *s)
+{
+	struct input_event e;
+
+	while (read(s->fd, &e, sizeof(e)) == sizeof(e))
+	{
+		if (e.type != EV_KEY)
+		{
+			continue;
+		}
+
+		putchar('.');
+		fflush(stdout);
+	}
+}
+
 int main (int argc, char **argv)
 {
 	parse_cmdline(argc, argv);
 	// parse keymap
 	open_keyboard(&parms, &state);
-	// loop processing events
+	process_events(&parms, &state);
 	return 0;
 }
