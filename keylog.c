@@ -14,7 +14,6 @@ struct parms
 {
 	const char *device;
 	const char *keymap;
-	unsigned short modkey;
 };
 
 struct state
@@ -27,8 +26,7 @@ struct state
 static struct parms parms =
 {
 	"/dev/input/event2",
-	"keymap.txt",
-	0x007d
+	"keymap.txt"
 };
 
 static struct state state =
@@ -46,7 +44,7 @@ static void die (const char *msg)
 
 static void usage (void)
 {
-	fprintf(stderr, "\nUsage: keylog [-d dev] [-k keymap] [-m modkey]\n\n");
+	fprintf(stderr, "\nUsage: keylog [-d dev] [-k keymap]\n\n");
 	exit(-1);
 }
 
@@ -56,12 +54,11 @@ static void parse_cmdline (int argc, char **argv)
 	{
 	{ "device",         required_argument,   0,   'd' },
 	{ "keymap",         required_argument,   0,   'k' },
-	{ "modkey",         required_argument,   0,   'm' },
 	};
 
 	char c;
 
-	while ((c = getopt_long(argc, argv, "d:k:m:", opts, NULL)) != -1)
+	while ((c = getopt_long(argc, argv, "d:k:", opts, NULL)) != -1)
 	{
 		switch (c)
 		{
@@ -71,11 +68,6 @@ static void parse_cmdline (int argc, char **argv)
 
 		case 'k':
 			parms.keymap = optarg;
-			break;
-
-		case 'm':
-			if (sscanf(optarg, "%hx", &parms.modkey) != 1)
-				die("sscanf");
 			break;
 
 		default:
