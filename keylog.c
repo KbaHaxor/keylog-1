@@ -21,8 +21,8 @@ struct state
 
 static struct parms parms =
 {
-	NULL,
-	NULL
+	"/dev/input/event2",
+	"keymap.txt",
 };
 
 static struct state state =
