@@ -1,1 +1,24 @@
 A simple keylogger, developed for XMonad screencasting.
+
+To build:
+  $ ./bootstrap.sh
+  $ ./configure
+  $ make
+
+To run:
+  $ cd src
+  # ./keylog [-d /dev/input/eventX] [-m keymap.txt]
+
+To find keyboard device:
+  $ grep -w sysrq /proc/bus/input/devices
+
+If that one doesn't work, try all the kbd devices...
+  $ grep -w kbd /proc/bus/input/devices
+
+To create a custom keymap:
+  $ cd src
+  $ rm keymap.txt
+  $ make keymap.txt
+  # showkey
+  $ vi keymap.txt
+
