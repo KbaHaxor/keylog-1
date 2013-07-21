@@ -49,11 +49,60 @@ my %replace =
 	'zero' => '0',
 );
 
+my %mark = map { $_ => 1 }
+qw(
+	Break
+	Delete
+	Do
+	Down
+	Escape
+	Find
+	Help
+	Insert
+	KP_0
+	KP_1
+	KP_2
+	KP_3
+	KP_4
+	KP_5
+	KP_6
+	KP_7
+	KP_8
+	KP_9
+	KP_Add
+	KP_Divide
+	KP_Enter
+	KP_MinPlus
+	KP_Multiply
+	KP_Period
+	KP_Subtract
+	Last_Console
+	Left
+	Macro
+	Next
+	Num_Lock
+	Pause
+	Prior
+	Remove
+	Return
+	Right
+	Scroll_Backward
+	Scroll_Forward
+	Scroll_Lock
+	Select
+	Show_Memory
+	space
+	Tab
+	Up
+	void
+);
+	
 sub clean
 {
 	my ($sym) = @_;
 	$sym =~ s/^\+//;
 	$sym = $replace{$sym} if exists $replace{$sym};
+	$sym = "<" . lc $sym . ">" if exists $mark{$sym};
 	$sym;
 }
 
