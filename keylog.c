@@ -18,6 +18,8 @@ struct parms
 struct state
 {
 	int fd;
+	const char *normal[256];
+	const char *shifted[256];
 };
 
 static struct parms parms =
@@ -29,7 +31,9 @@ static struct parms parms =
 
 static struct state state =
 {
-	0
+	0,
+	{ NULL },
+	{ NULL }
 };
 
 static void die (const char *msg)
