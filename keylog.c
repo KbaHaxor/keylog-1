@@ -87,6 +87,7 @@ static void prepare_system (const struct parms *p, struct state *s)
 {
 	struct stat sb;
 	void *map;
+	char *tok;
 	int fd;
 
 	if ((fd = open(p->device, O_RDONLY)) < 0)
@@ -106,7 +107,8 @@ static void prepare_system (const struct parms *p, struct state *s)
 	if (close(fd) < 0)
 		die("close");
 
-	char *tok = strtok((char*)map, "\t");
+	if ((tok = strtok((char*)map, "\t")) == NULL)
+		die("strtok");
 
 	while (tok != NULL)
 	{
