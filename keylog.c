@@ -168,6 +168,7 @@ static void show_key (unsigned short c)
 static void process_events (const struct parms *p, struct state *s)
 {
 	struct input_event e;
+	int repeat = 0;
 
 	while (read(s->fd, &e, sizeof(e)) == sizeof(e))
 	{
@@ -187,9 +188,16 @@ static void process_events (const struct parms *p, struct state *s)
 			break;
 
 		case 1:   // key down
+			if (repeat > 0)
+			{
+				printf("(%d) ", repeat);
+				fflush(stdout);
+			}
 			s->isdown[e.code] = 1;
+			repeat = -1;
 			if (*s->ismod[e.code] == 'N')
 			{
+				repeat = 0;
 				show_modifiers(s);
 				show_key(e.code);
 				fflush(stdout);
@@ -197,6 +205,7 @@ static void process_events (const struct parms *p, struct state *s)
 			break;
 
 		case 2:   // key repeat
+			if (repeat >= 0) repeat++;
 			break;
 
 		default:
