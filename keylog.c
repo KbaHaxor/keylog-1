@@ -86,6 +86,17 @@ static void open_keyboard (const struct parms *p, struct state *s)
 	s->fd = fd;
 }
 
+static const char * event_kind (unsigned int v)
+{
+	switch (v)
+	{
+	case 0:  return "U";
+	case 1:  return "D";
+	case 2:  return "R";
+	default: return "?";
+	}
+}
+
 static void process_events (const struct parms *p, struct state *s)
 {
 	struct input_event e;
@@ -97,7 +108,7 @@ static void process_events (const struct parms *p, struct state *s)
 			continue;
 		}
 
-		putchar('.');
+		printf("%04x-%s ", e.code, event_kind(e.value));
 		fflush(stdout);
 	}
 }
