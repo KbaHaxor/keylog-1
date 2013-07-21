@@ -147,6 +147,13 @@ static const char * event_kind (unsigned int v)
 	}
 }
 
+static const char * event_name (unsigned short c)
+{
+	if (c > 0xff)
+		die("0xff");
+	return state.normal[c];
+}
+
 static void process_events (const struct parms *p, struct state *s)
 {
 	struct input_event e;
@@ -156,7 +163,7 @@ static void process_events (const struct parms *p, struct state *s)
 		if (e.type != EV_KEY)
 			continue;
 
-		printf("%04x-%s ", e.code, event_kind(e.value));
+		printf("%s-%s ", event_kind(e.value), event_name(e.code));
 		fflush(stdout);
 	}
 }
