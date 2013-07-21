@@ -1,0 +1,32 @@
+name:               keyloggui
+version:            0.1
+homepage:           http://haskell.org
+synopsis:           A keylogger gui for XMonad screencasting
+description:
+    XMonad screencasts can be hard to follow. There is minimal mouse activity
+    to guide your attention, and things just "happen" with no indication
+    of the triggering keyboard action. This package implements a simple
+    horizontal ticker which, in combination with a keylogging helper program,
+    provides a visible audit trail of keyboard commands for viewers to
+    follow along.
+category:           System
+license:            BSD3
+license-file:       LICENSE
+author:             Ray Lehtiniemi
+maintainer:         rayl@mail.com
+extra-source-files: README
+cabal-version:      >= 1.6
+bug-reports:        rayl@mail.com
+build-type:         Simple
+
+tested-with:        GHC==7.4.2
+
+data-files:         
+
+source-repository head
+  type:     git
+  location: https://github.com/rayl/keylog
+
+executable keyloggui
+    main-is:        Main.hs
+    ghc-options:    -Wall
