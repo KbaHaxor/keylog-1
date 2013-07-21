@@ -116,7 +116,7 @@ static void prepare_system (const struct parms *p, struct state *s)
 	{
 		unsigned short code;
 
-		if (sscanf(tok, "%hx", &code) != 1)
+		if (sscanf(tok, "%hd", &code) != 1)
 			die("sscanf");
 
 		if (code > 255)
