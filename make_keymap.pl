@@ -57,6 +57,18 @@ sub clean
 	$sym;
 }
 
+sub ismod
+{
+	my ($sym) = @_;
+	my %mods = map { $_ => 1 }
+	(
+		'Control',
+		'Shift',
+		'Alt',
+	);
+	(exists $mods{$sym}) ? 'Y' : 'N';
+}
+
 # discard keymaps line
 die unless <> =~ m/^keymaps \d+-\d+$/;
 
@@ -65,6 +77,6 @@ while (my $line = <>)
 {
 	my @line = split(/\s+/, $line);
 	exit unless $line[0] eq "keycode";
-	print sprintf("%d\t%s\t%s\n", $line[1], clean($line[3]), clean($line[4]));
+	print sprintf("%d\t%s\t%s\t%s\n", $line[1], clean($line[3]), clean($line[4]), ismod($line[3]));
 }
 

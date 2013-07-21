@@ -21,6 +21,7 @@ struct state
 	int fd;
 	const char *normal[256];
 	const char *shifted[256];
+	const char *ismod[256];
 };
 
 static struct parms parms =
@@ -32,6 +33,7 @@ static struct parms parms =
 static struct state state =
 {
 	0,
+	{ NULL },
 	{ NULL },
 	{ NULL }
 };
@@ -119,10 +121,24 @@ static void prepare_system (const struct parms *p, struct state *s)
 
 		s->normal[code] = tok;
 
-		if ((tok = strtok(NULL,"\n")) == NULL)
+		if ((tok = strtok(NULL,"\t")) == NULL)
 			die("strtok");
 
 		s->shifted[code] = tok;
+
+		if ((tok = strtok(NULL,"\n")) == NULL)
+			die("strtok");
+
+		switch (*tok)
+		{
+		case 'Y':
+		case 'N':
+			break;
+		default:
+			die("ismod");
+		}
+
+		s->ismod[code] = tok;
 
 		tok = strtok(NULL,"\t");
 	}
