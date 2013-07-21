@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include <getopt.h>
+#include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -85,14 +87,53 @@ static void parse_cmdline (int argc, char **argv)
 		die("excess cmdline args");
 }
 
-static void open_keyboard (const struct parms *p, struct state *s)
+static void prepare_system (const struct parms *p, struct state *s)
 {
+	struct stat sb;
+	void *map;
 	int fd;
 
 	if ((fd = open(p->device, O_RDONLY)) < 0)
 		die("open");
 
 	s->fd = fd;
+
+	if ((fd = open(p->keymap, O_RDWR)) < 0)
+		die("open");
+
+	if (fstat(fd, &sb) == -1)
+		die("fstat");
+
+	if ((map = mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_PRIVATE,fd,0)) == MAP_FAILED)
+		die("mmap");
+
+	if (close(fd) < 0)
+		die("close");
+
+	char *tok = strtok((char*)map, "\t");
+
+	while (tok != NULL)
+	{
+		unsigned short code;
+
+		if (sscanf(tok, "%hx", &code) != 1)
+			die("sscanf");
+
+		if (code > 255)
+			die("code");
+
+		if ((tok = strtok(NULL,"\t")) == NULL)
+			die("strtok");
+
+		s->normal[code] = tok;
+
+		if ((tok = strtok(NULL,"\n")) == NULL)
+			die("strtok");
+
+		s->shifted[code] = tok;
+
+		tok = strtok(NULL,"\t");
+	}
 }
 
 static const char * event_kind (unsigned int v)
@@ -123,8 +164,7 @@ static void process_events (const struct parms *p, struct state *s)
 int main (int argc, char **argv)
 {
 	parse_cmdline(argc, argv);
-	// parse keymap
-	open_keyboard(&parms, &state);
+	prepare_system(&parms, &state);
 	process_events(&parms, &state);
 	return 0;
 }
