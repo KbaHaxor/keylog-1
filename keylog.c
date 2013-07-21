@@ -78,9 +78,7 @@ static void parse_cmdline (int argc, char **argv)
 	}
 
 	if (optind < argc)
-	{
 		die("excess cmdline args");
-	}
 }
 
 static void open_keyboard (const struct parms *p, struct state *s)
@@ -111,9 +109,7 @@ static void process_events (const struct parms *p, struct state *s)
 	while (read(s->fd, &e, sizeof(e)) == sizeof(e))
 	{
 		if (e.type != EV_KEY)
-		{
 			continue;
-		}
 
 		printf("%04x-%s ", e.code, event_kind(e.value));
 		fflush(stdout);
