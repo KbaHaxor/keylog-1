@@ -21,7 +21,7 @@ struct state
 	int fd;
 	const char *normal[256];
 	const char *shifted[256];
-	const char *ismod[256];
+	int ismod[256];
 	int isdown[256];
 };
 
@@ -136,13 +136,15 @@ static void prepare_system (const struct parms *p, struct state *s)
 		switch (*tok)
 		{
 		case 'Y':
+			s->ismod[code] = 1;
+			break;
+
 		case 'N':
+			s->ismod[code] = 0;
 			break;
 		default:
 			die("ismod");
 		}
-
-		s->ismod[code] = tok;
 
 		tok = strtok(NULL,"\t");
 	}
@@ -158,7 +160,7 @@ static void show_modifiers (struct state *s)
 	int i;
 	for (i=1; i<255; i++)
 		if (s->isdown[i])
-			if (*s->ismod[i] == 'Y')
+			if (s->ismod[i])
 				printf("%s", event_name(i));
 }
 
@@ -197,7 +199,7 @@ static void process_events (const struct parms *p, struct state *s)
 			}
 			s->isdown[e.code] = 1;
 			repeat = -1;
-			if (*s->ismod[e.code] == 'N')
+			if (!s->ismod[e.code])
 			{
 				repeat = 0;
 				show_modifiers(s);
