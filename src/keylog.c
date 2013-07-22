@@ -36,7 +36,7 @@ static struct state state =
 	0,
 	{ NULL },
 	{ NULL },
-	{ NULL },
+	{ 0 },
 	{ 0 }
 };
 
