@@ -150,9 +150,14 @@ static void prepare_system (const struct parms *p, struct state *s)
 	}
 }
 
-static const char * event_name (unsigned short c)
+static const char * event_name (struct state *s, unsigned short c)
 {
-	return state.normal[c];
+	return s->normal[c];
+}
+
+static void show_key (struct state *s, unsigned short c)
+{
+	printf("%s", event_name(s,c));
 }
 
 static void show_modifiers (struct state *s)
@@ -161,12 +166,7 @@ static void show_modifiers (struct state *s)
 	for (i=1; i<255; i++)
 		if (s->isdown[i])
 			if (s->ismod[i])
-				printf("%s", event_name(i));
-}
-
-static void show_key (unsigned short c)
-{
-	printf("%s ", event_name(c));
+				show_key(s,i);
 }
 
 static void process_events (const struct parms *p, struct state *s)
@@ -203,7 +203,8 @@ static void process_events (const struct parms *p, struct state *s)
 			{
 				repeat = 0;
 				show_modifiers(s);
-				show_key(e.code);
+				show_key(s,e.code);
+				printf("  ");
 				fflush(stdout);
 			}
 			break;
