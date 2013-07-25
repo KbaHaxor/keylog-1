@@ -13,10 +13,13 @@
 
 module Main (main) where
 
+import Data.List (init,last)
+import Data.Char (isSpace)
 import System.IO (hGetLine,hReady)
 import GHC.IO.Handle (Handle)
 import System.Posix.Types (Fd(..))
 import System.Posix.IO (openFd,OpenMode(ReadWrite),OpenFileFlags(..),fdToHandle)
+import Text.Regex.Posix ((=~))
 import Control.Monad.Trans(liftIO)
 import Graphics.UI.Gtk
 import Graphics.Rendering.Pango.Font ()
@@ -57,16 +60,28 @@ main = do
 fdFD :: Fd -> Int
 fdFD (Fd fd) = fromEnum fd
 
+newLabel :: String -> String -> String
+newLabel cur add = drop excess newText
+         where
+            excess = length newText - maxChars
+            newText = base ++ "  " ++ tail
+            base | add == "+ 1"   = cur
+                 | add =~ "^\\+ " = rewind cur
+                 | otherwise      = cur
+            tail | add =~ "^\\+ " = counter
+                 | otherwise      = add
+            rewind c = if isSpace $ last c
+                       then init . init $ c
+                       else rewind $ init c
+            counter = "+" ++ (drop 2 add)
+
 readMore :: Handle -> Label -> IO Bool
 readMore h l = do
    s1 <- labelGetText l
    s2 <- hGetLine h
-   let x = s1 ++ "  " ++ s2
-       m = length x
-   labelSetText l $ drop (m - maxChars) x
-   widgetQueueDraw l
-   more <- hReady h
-   if more
+   ss <- hReady h
+   labelSetText l $ newLabel s1 s2
+   if ss
      then readMore h l
-     else return True
+     else widgetQueueDraw l >> return True
 

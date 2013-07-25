@@ -192,16 +192,11 @@ static void process_events (const struct parms *p, struct state *s)
 			break;
 
 		case 1:   // key down
-			if (repeat > 0)
-			{
-				printf("(%d)\n", repeat);
-				fflush(stdout);
-			}
 			s->isdown[e.code] = 1;
 			repeat = -1;
 			if (!s->ismod[e.code])
 			{
-				repeat = 0;
+				repeat = 1;
 				show_modifiers(s);
 				show_key(s,e.code);
 				printf("\n");
@@ -210,7 +205,11 @@ static void process_events (const struct parms *p, struct state *s)
 			break;
 
 		case 2:   // key repeat
-			if (repeat >= 0) repeat++;
+			if (repeat > 0)
+			{
+				printf("+ %d\n", repeat++);
+				fflush(stdout);
+			}
 			break;
 
 		default:
