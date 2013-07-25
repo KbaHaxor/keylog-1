@@ -4,6 +4,10 @@
 
 my %replace =
 (
+	'Delete' => 'del',
+	'Escape' => 'esc',
+	'Insert' => 'ins',
+	'Return' => 'cr',
 	'VoidSymbol' => 'void',
 	'ampersand' => '&',
 	'apostrophe' => '\'',
@@ -43,6 +47,7 @@ my %replace =
 	'seven' => '7',
 	'six' => '6',
 	'slash' => '/',
+	'space' => 'spc',
 	'three' => '3',
 	'two' => '2',
 	'underscore' => '_',
@@ -52,13 +57,14 @@ my %replace =
 my %mark = map { $_ => 1 }
 qw(
 	Break
-	Delete
+	cr
+	del
 	Do
 	Down
-	Escape
+	esc
 	Find
 	Help
-	Insert
+	ins
 	KP_0
 	KP_1
 	KP_2
@@ -84,14 +90,13 @@ qw(
 	Pause
 	Prior
 	Remove
-	Return
 	Right
 	Scroll_Backward
 	Scroll_Forward
 	Scroll_Lock
 	Select
 	Show_Memory
-	space
+	spc
 	Tab
 	Up
 	void
