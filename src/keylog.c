@@ -194,7 +194,7 @@ static void process_events (const struct parms *p, struct state *s)
 		case 1:   // key down
 			if (repeat > 0)
 			{
-				printf("(%d) ", repeat);
+				printf("(%d)\n", repeat);
 				fflush(stdout);
 			}
 			s->isdown[e.code] = 1;
@@ -204,7 +204,7 @@ static void process_events (const struct parms *p, struct state *s)
 				repeat = 0;
 				show_modifiers(s);
 				show_key(s,e.code);
-				printf("  ");
+				printf("\n");
 				fflush(stdout);
 			}
 			break;

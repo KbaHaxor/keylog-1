@@ -13,12 +13,14 @@
 
 module Main (main) where
 
-import System.Posix.Types
-import System.Posix.IO
+import System.IO (hGetLine,hReady)
+import GHC.IO.Handle (Handle)
+import System.Posix.Types (Fd(..))
+import System.Posix.IO (openFd,OpenMode(ReadWrite),OpenFileFlags(..),fdToHandle)
 import Control.Monad.Trans(liftIO)
 import Graphics.UI.Gtk
-import Graphics.Rendering.Pango.Font
-import qualified System.Glib.MainLoop as M
+import Graphics.Rendering.Pango.Font ()
+import qualified System.Glib.MainLoop as M (inputAdd)
 
 
 maxChars = 40
@@ -47,20 +49,24 @@ main = do
    widgetShowAll window
 
    fd <- openFd "../key_stream" ReadWrite Nothing (OpenFileFlags False False False True False)
-   h <- M.inputAdd (fdFD fd) [IOIn] priorityDefault (readMore fd label)
+   h  <- fdToHandle fd
+   i  <- M.inputAdd (fdFD fd) [IOIn] priorityDefault (readMore h label)
 
    mainGUI
 
 fdFD :: Fd -> Int
 fdFD (Fd fd) = fromEnum fd
 
-readMore :: Fd -> Label -> IO Bool
-readMore fd l = do
+readMore :: Handle -> Label -> IO Bool
+readMore h l = do
    s1 <- labelGetText l
-   (s2,n) <- fdRead fd 100
-   let x = s1 ++ s2
+   s2 <- hGetLine h
+   let x = s1 ++ "  " ++ s2
        m = length x
    labelSetText l $ drop (m - maxChars) x
    widgetQueueDraw l
-   return True
+   more <- hReady h
+   if more
+     then readMore h l
+     else return True
 
