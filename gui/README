@@ -1,0 +1,23 @@
+A simple ticker-style display of keylogger data.
+
+Set up a manage hook in XMonad to display the window.
+
+   import XMonad.Hooks.ManageHelpers (doRectFloat)
+
+   myManageHooks :: ManageHook
+   myManageHooks = composeAll [ className =? "Keyloggui" --> doKeyloggui ]
+       where
+          doKeyloggui = doRectFloat $ RationalRect 0.4 0.98 0.2 0.02
+
+Run the collector into the gui with a pipe:
+  $ mkfifo key_stream
+  # keylog > key_stream
+  $ cat key_stream | keyloggui
+
+
+TODO:
+  - handle shifted key display better
+  - make window boring
+  - make window appear on all workspaces
+  - bundle all XMonad config into a module
+
