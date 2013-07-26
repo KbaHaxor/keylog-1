@@ -17,11 +17,9 @@ module Main (main) where
 import Control.Monad.Trans (liftIO)
 import Data.Char (isSpace)
 import Data.List (init,last)
-import GHC.IO.Handle (Handle)
 import Graphics.UI.Gtk
-import System.IO (hGetLine,hReady)
-import System.Posix.IO (openFd,OpenMode(ReadWrite),OpenFileFlags(..),fdToHandle)
-import System.Posix.Types (Fd(..))
+import System.IO (Handle,stdin,hGetLine,hReady)
+import System.Posix.IO (stdInput)
 import Text.Regex.Posix ((=~))
 
 
@@ -30,16 +28,12 @@ maxChars = 40
 main :: IO ()
 main = do
    initGUI
-
    window <- windowNew
    window `on` deleteEvent $ liftIO mainQuit >> return False
-
    vbox <- vBoxNew False 0
    containerAdd window vbox
-
    font <- fontDescriptionFromString "courier bold 12"
-
-   label <- labelNew (Just "ticker stream...")
+   label <- labelNew (Just "Keylog GUI: ")
    miscSetAlignment label 1 0
    widgetModifyFont label (Just font)
    labelSetSingleLineMode label True
@@ -47,17 +41,9 @@ main = do
    labelSetJustify label JustifyRight
    labelSetLineWrap label False
    boxPackStart vbox label PackGrow 0
-
    widgetShowAll window
-
-   fd <- openFd "../key_stream" ReadWrite Nothing (OpenFileFlags False False False True False)
-   h  <- fdToHandle fd
-   i  <- inputAdd (fdFD fd) [IOIn] priorityDefault (readMore h label)
-
+   i  <- inputAdd (fromEnum stdInput) [IOIn] priorityDefault $ readMore stdin label
    mainGUI
-
-fdFD :: Fd -> Int
-fdFD (Fd fd) = fromEnum fd
 
 newLabel :: String -> String -> String
 newLabel cur add = drop excess newText

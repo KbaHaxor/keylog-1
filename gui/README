@@ -12,7 +12,7 @@ Set up a manage hook in XMonad to display the window.
 Run the collector into the gui with a pipe:
   $ mkfifo key_stream
   # keylog > key_stream
-  $ cat key_stream | keyloggui
+  $ keyloggui < key_stream
 
 
 TODO:
