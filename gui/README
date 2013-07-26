@@ -20,4 +20,7 @@ TODO:
   - make window boring
   - make window appear on all workspaces
   - bundle all XMonad config into a module
+  - if you suspend collector with C-z, mouse to another window, then mouse back
+    and resume, it thinks C- is active until you hit ctrl key again.
+  - need way to disable collection during password entry, etc.
 
