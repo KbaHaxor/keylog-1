@@ -13,17 +13,16 @@
 
 module Main (main) where
 
-import Data.List (init,last)
+--------------------------------------------------------------------------------
+import Control.Monad.Trans (liftIO)
 import Data.Char (isSpace)
-import System.IO (hGetLine,hReady)
+import Data.List (init,last)
 import GHC.IO.Handle (Handle)
-import System.Posix.Types (Fd(..))
-import System.Posix.IO (openFd,OpenMode(ReadWrite),OpenFileFlags(..),fdToHandle)
-import Text.Regex.Posix ((=~))
-import Control.Monad.Trans(liftIO)
 import Graphics.UI.Gtk
-import Graphics.Rendering.Pango.Font ()
-import qualified System.Glib.MainLoop as M (inputAdd)
+import System.IO (hGetLine,hReady)
+import System.Posix.IO (openFd,OpenMode(ReadWrite),OpenFileFlags(..),fdToHandle)
+import System.Posix.Types (Fd(..))
+import Text.Regex.Posix ((=~))
 
 
 maxChars = 40
@@ -53,7 +52,7 @@ main = do
 
    fd <- openFd "../key_stream" ReadWrite Nothing (OpenFileFlags False False False True False)
    h  <- fdToHandle fd
-   i  <- M.inputAdd (fdFD fd) [IOIn] priorityDefault (readMore h label)
+   i  <- inputAdd (fdFD fd) [IOIn] priorityDefault (readMore h label)
 
    mainGUI
 
