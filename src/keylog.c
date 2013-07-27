@@ -14,13 +14,15 @@
 
 struct parms
 {
-	const char *device;
-	const char *keymap;
+	const char *keyboard;
+	const char *mouse;
+	const char *symbols;
 };
 
 struct state
 {
-	int fd;
+	int kfd;
+	int mfd;
 	const char *normal[256];
 	const char *shifted[256];
 	int ismod[256];
@@ -32,11 +34,13 @@ struct state
 static struct parms parms =
 {
 	"/dev/input/event2",
+	"/dev/input/event3",
 	"keymap.txt"
 };
 
 static struct state state =
 {
+	0,
 	0,
 	{ NULL },
 	{ NULL },
@@ -54,7 +58,7 @@ static void die (const char *msg)
 
 static void usage (void)
 {
-	fprintf(stderr, "\nUsage: keylog [-d dev] [-k keymap]\n\n");
+	fprintf(stderr, "\nUsage: keylog [-k keyboard] [-m mouse] [-s symbols]\n\n");
 	exit(-1);
 }
 
@@ -62,22 +66,27 @@ static void parse_cmdline (int argc, char **argv)
 {
 	static struct option opts[] =
 	{
-	{ "device",         required_argument,   0,   'd' },
-	{ "keymap",         required_argument,   0,   'k' },
+	{ "keyboard",       required_argument,   0,   'k' },
+	{ "mouse",          required_argument,   0,   'm' },
+	{ "symbols",        required_argument,   0,   's' },
 	};
 
 	char c;
 
-	while ((c = getopt_long(argc, argv, "d:k:", opts, NULL)) != -1)
+	while ((c = getopt_long(argc, argv, "k:m:s:", opts, NULL)) != -1)
 	{
 		switch (c)
 		{
-		case 'd':
-			parms.device = optarg;
+		case 'k':
+			parms.keyboard = optarg;
 			break;
 
-		case 'k':
-			parms.keymap = optarg;
+		case 'm':
+			parms.mouse = optarg;
+			break;
+
+		case 's':
+			parms.symbols = optarg;
 			break;
 
 		default:
@@ -110,33 +119,35 @@ static void key_down (struct state *s, unsigned short c)
 			s->capslock ^= 1;
 }
 
-static void prepare_system (const struct parms *p, struct state *s)
+static int monitor (const char *type, const char *dev)
 {
-	unsigned long leds;
 	char name[1024];
-	uint8_t keys[16];
-	struct stat sb;
-	void *map;
-	char *tok;
 	int fd;
-	int i,j;
 
-	if ((fd = open(p->device, O_RDONLY)) < 0)
+	if ((fd = open(dev, O_RDONLY)) < 0)
 		die("open");
 
-	s->fd = fd;
-
-	if (ioctl (s->fd, EVIOCGNAME(sizeof name), &name) < 0)
+	if (ioctl (fd, EVIOCGNAME(sizeof name), &name) < 0)
 		die("ioctl");
 
-	fprintf(stderr, "Monitoring %s", name);
+	fprintf(stderr, "Monitoring %s \"%s\"", type, name);
 
-	if (ioctl (s->fd, EVIOCGPHYS(sizeof name), &name) < 0)
+	if (ioctl (fd, EVIOCGPHYS(sizeof name), &name) < 0)
 		die("ioctl");
 
 	fprintf(stderr, " on %s\n", name);
 
-	if ((fd = open(p->keymap, O_RDWR)) < 0)
+	return fd;
+}
+
+static void load_symbols (const struct parms *p, struct state *s)
+{
+	struct stat sb;
+	void *map;
+	char *tok;
+	int fd;
+
+	if ((fd = open(p->symbols, O_RDWR)) < 0)
 		die("open");
 
 	if (fstat(fd, &sb) == -1)
@@ -189,8 +200,15 @@ static void prepare_system (const struct parms *p, struct state *s)
 
 		tok = strtok(NULL,"\t");
 	}
+}
 
-	if (ioctl (s->fd, EVIOCGKEY(sizeof keys), &keys) < 0)
+static void scan_keyboard (struct state *s)
+{
+	unsigned long leds;
+	uint8_t keys[16];
+	int i,j;
+
+	if (ioctl (s->kfd, EVIOCGKEY(sizeof keys), &keys) < 0)
 		die("ioctl");
 
 	for (i = 0; i < sizeof keys; i++)
@@ -198,11 +216,19 @@ static void prepare_system (const struct parms *p, struct state *s)
 			if (keys[i] & (1 << j))
 				key_down(s,(i*8) + j);
 
-	if (ioctl (s->fd, EVIOCGLED(sizeof leds), &leds) < 0)
+	if (ioctl (s->kfd, EVIOCGLED(sizeof leds), &leds) < 0)
 		die("ioctl");
 
 	if (leds & (1 << LED_CAPSL))
 		s->capslock = 1;
+}
+
+static void prepare_system (const struct parms *p, struct state *s)
+{
+	s->kfd = monitor("keyboard", p->keyboard);
+	s->mfd = monitor("mouse", p->mouse);
+	load_symbols(p,s);
+	scan_keyboard(s);
 }
 
 static const char * event_name (struct state *s, unsigned short c)
@@ -224,7 +250,7 @@ static void show_key (struct state *s, unsigned short c)
 	printf("%s", event_name(s,c));
 }
 
-// filter out S- if event_name() will use other keymap
+// filter out S- if event_name() will use other symbols
 static int want_to_see (struct state *s, unsigned short c, int m)
 {
 	if (!strcmp(s->normal[c], s->shifted[c])) return 1;
@@ -247,7 +273,7 @@ static void process_events (const struct parms *p, struct state *s)
 	struct input_event e;
 	int repeat = 0;
 
-	while (read(s->fd, &e, sizeof(e)) == sizeof(e))
+	while (read(s->kfd, &e, sizeof(e)) == sizeof(e))
 	{
 		if (e.type != EV_KEY)
 			continue;

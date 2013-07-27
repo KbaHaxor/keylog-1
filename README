@@ -7,13 +7,10 @@ To build:
 
 To run:
   $ cd src
-  # ./keylog [-d /dev/input/eventX] [-m keymap.txt]
+  # ./keylog [-k /dev/input/eventX] [-m /dev/input/eventY] [-s keymap.txt]
 
-To find keyboard device:
-  $ grep -w sysrq /proc/bus/input/devices
-
-If that one doesn't work, try all the kbd devices...
-  $ grep -w kbd /proc/bus/input/devices
+To find keyboard and mouse device:
+  $ grep "mouse\|sysrq" /proc/bus/input/devices
 
 To create a custom keymap:
   $ cd src
