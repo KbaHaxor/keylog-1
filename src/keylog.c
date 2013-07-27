@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <string.h>
 #include <getopt.h>
@@ -88,12 +89,35 @@ static void parse_cmdline (int argc, char **argv)
 		die("excess cmdline args");
 }
 
+static void key_up (struct state *s, unsigned short c)
+{
+	s->isdown[c] = 0;
+
+	if (s->shiftcount)
+		if (!strcmp(s->normal[c], "S-"))
+			s->shiftcount--;
+}
+
+static void key_down (struct state *s, unsigned short c)
+{
+	s->isdown[c] = 1;
+
+	if (!strcmp(s->normal[c], "S-"))
+		s->shiftcount++;
+
+	if (!strcmp(s->normal[c], "<caps_lock>"))
+		if (s->shiftcount == 0)
+			s->capslock ^= 1;
+}
+
 static void prepare_system (const struct parms *p, struct state *s)
 {
+	uint8_t keys[16];
 	struct stat sb;
 	void *map;
 	char *tok;
 	int fd;
+	int i,j;
 
 	if ((fd = open(p->device, O_RDONLY)) < 0)
 		die("open");
@@ -153,6 +177,15 @@ static void prepare_system (const struct parms *p, struct state *s)
 
 		tok = strtok(NULL,"\t");
 	}
+
+	if (ioctl (s->fd, EVIOCGKEY(sizeof keys), &keys) < 0)
+		die("ioctl");
+
+	for (i = 0; i < sizeof keys; i++)
+		for (j = 0; j < 8; j++)
+			if (keys[i] & (1 << j))
+				key_down(s,(i*8) + j);
+
 }
 
 static const char * event_name (struct state *s, unsigned short c)
@@ -186,27 +219,6 @@ static void show_modifiers (struct state *s, unsigned short c)
 			if (s->ismod[m])
 				if (want_to_see(s,c,m))
 					show_key(s,m);
-}
-
-static void key_up (struct state *s, unsigned short c)
-{
-	s->isdown[c] = 0;
-
-	if (s->shiftcount)
-		if (!strcmp(s->normal[c], "S-"))
-			s->shiftcount--;
-}
-
-static void key_down (struct state *s, unsigned short c)
-{
-	s->isdown[c] = 1;
-
-	if (!strcmp(s->normal[c], "S-"))
-		s->shiftcount++;
-
-	if (!strcmp(s->normal[c], "<caps_lock>"))
-		if (s->shiftcount == 0)
-			s->capslock ^= 1;
 }
 
 static void process_events (const struct parms *p, struct state *s)
