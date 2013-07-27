@@ -26,7 +26,7 @@ import Text.Regex.Posix ((=~))
 
 -- How many characters to display in the ticker window
 maxChars :: Int
-maxChars = 40
+maxChars = 60
 
 
 -- Main program

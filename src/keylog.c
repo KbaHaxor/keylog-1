@@ -388,14 +388,14 @@ static void do_mouse (struct state *s)
 		{
 		case 1:   // wheel up
 			show_modifiers(s,1); // hack
-			printf("mouse4");
+			printf("<mouse4>");
 			printf("\n");
 			fflush(stdout);
 			break;
 
 		case -1:   // wheel down
 			show_modifiers(s,1); // hack
-			printf("mouse5");
+			printf("<mouse5>");
 			printf("\n");
 			fflush(stdout);
 			break;
