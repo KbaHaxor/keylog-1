@@ -8,13 +8,17 @@
 #include <ctype.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+#include <sys/select.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <linux/input.h>
 
 
-const char *sym_shift = "S-";
-const char *sym_caps = "<caps_lock>";
+#define MAXSYM 0x117
+
+static const char *sym_shift = "S-";
+static const char *sym_caps = "<caps_lock>";
+static const char *sym_undef = "<UNDEF>";
 
 struct parms
 {
@@ -27,10 +31,10 @@ struct state
 {
 	int kfd;
 	int mfd;
-	const char *normal[256];
-	const char *shifted[256];
-	int ismod[256];
-	int isdown[256];
+	const char *normal[MAXSYM];
+	const char *shifted[MAXSYM];
+	int ismod[MAXSYM];
+	int isdown[MAXSYM];
 	int shiftcount;
 	int capslock;
 };
@@ -150,6 +154,7 @@ static void load_symbols (const struct parms *p, struct state *s)
 	char *map;
 	char *tok;
 	int fd;
+	int i;
 
 	if ((fd = open(p->symbols, O_RDWR)) < 0)
 		die("open");
@@ -175,7 +180,7 @@ static void load_symbols (const struct parms *p, struct state *s)
 		if (sscanf(tok, "%hd", &code) != 1)
 			die("sscanf");
 
-		if (code > 255)
+		if (code > MAXSYM-1)
 			die("code");
 
 		if ((tok = strtok(NULL,"\t")) == NULL)
@@ -206,6 +211,15 @@ static void load_symbols (const struct parms *p, struct state *s)
 
 		tok = strtok(NULL,"\t");
 	}
+
+	for (i=0; i<MAXSYM; i++)
+		if (!s->normal[i])
+			s->normal[i] = sym_undef;
+
+	for (i=0; i<MAXSYM; i++)
+		if (!s->shifted[i])
+			s->shifted[i] = sym_undef;
+
 }
 
 static void scan_keyboard (struct state *s)
@@ -269,27 +283,79 @@ static int want_to_see (struct state *s, unsigned short c, int m)
 static void show_modifiers (struct state *s, unsigned short c)
 {
 	int m;
-	for (m=1; m<255; m++)
+	for (m=1; m<MAXSYM-1; m++)
 		if (s->isdown[m])
 			if (s->ismod[m])
 				if (want_to_see(s,c,m))
 					show_key(s,m);
 }
 
-static void process_events (const struct parms *p, struct state *s)
+static void do_keyboard (struct state *s)
+{
+	static int repeat = 0;
+	struct input_event e;
+
+	if (read(s->kfd, &e, sizeof(e)) != sizeof(e))
+		die("read keyboard");
+
+	if (e.type != EV_KEY)
+		return;
+
+	if (e.code > 255)
+	{
+		fprintf(stderr,"IGNORING keyboard code %d\n", e.code);
+		return;
+	}
+
+	switch (e.value)
+	{
+	case 0:   // key up
+		key_up(s,e.code);
+		break;
+
+	case 1:   // key down
+		key_down(s,e.code);
+		repeat = -1;
+		if (!s->ismod[e.code])
+		{
+			repeat = 1;
+			show_modifiers(s,e.code);
+			show_key(s,e.code);
+			printf("\n");
+			fflush(stdout);
+		}
+		break;
+
+	case 2:   // key repeat
+		if (repeat > 0)
+		{
+			printf("+ %d\n", repeat++);
+			fflush(stdout);
+		}
+		break;
+
+	default:
+		die("bad keyboard value");
+	}
+}
+
+static void do_mouse (struct state *s)
 {
 	struct input_event e;
-	int repeat = 0;
 
-	while (read(s->kfd, &e, sizeof(e)) == sizeof(e))
+	if (read(s->mfd, &e, sizeof(e)) != sizeof(e))
+		die("read mouse");
+
+	//fprintf(stderr, "Got mouse %04x %04x %08x\n", e.type, e.code, e.value);
+
+	switch (e.type)
 	{
-		if (e.type != EV_KEY)
-			continue;
+	case EV_KEY:
 
-		if (e.code > 255)
+		if ((e.code < 0x110) || (e.code > 0x117))
 		{
-			fprintf(stderr,"IGNORING code %d\n", e.code);
-			continue;
+			fprintf(stderr,"IGNORING mouse key %d\n", e.code);
+			return;
 		}
 
 		switch (e.value)
@@ -300,10 +366,8 @@ static void process_events (const struct parms *p, struct state *s)
 
 		case 1:   // key down
 			key_down(s,e.code);
-			repeat = -1;
 			if (!s->ismod[e.code])
 			{
-				repeat = 1;
 				show_modifiers(s,e.code);
 				show_key(s,e.code);
 				printf("\n");
@@ -311,17 +375,63 @@ static void process_events (const struct parms *p, struct state *s)
 			}
 			break;
 
-		case 2:   // key repeat
-			if (repeat > 0)
-			{
-				printf("+ %d\n", repeat++);
-				fflush(stdout);
-			}
+		default:
+			die("bad mouse key value");
+		}
+		break;
+
+	case EV_REL:
+		if (e.code != REL_WHEEL)
+			return;
+
+		switch (e.value)
+		{
+		case 1:   // wheel up
+			show_modifiers(s,1); // hack
+			printf("mouse4");
+			printf("\n");
+			fflush(stdout);
+			break;
+
+		case -1:   // wheel down
+			show_modifiers(s,1); // hack
+			printf("mouse5");
+			printf("\n");
+			fflush(stdout);
 			break;
 
 		default:
-			die("value");
+			die("bad mouse rel value");
 		}
+		break;
+
+	default:
+		return;
+	}
+}
+
+static void process_events (struct state *s)
+{
+	int nfds = 1 + ((s->kfd > s->mfd) ? s->kfd : s->mfd);
+
+	while (1)
+	{
+		fd_set rfds;
+		int rc;
+
+		FD_ZERO(&rfds);
+
+		FD_SET(s->kfd, &rfds);
+		FD_SET(s->mfd, &rfds);
+
+		if ((rc = select(nfds, &rfds, NULL, NULL, NULL)) < 0)
+			die("select");
+
+		if (FD_ISSET(s->kfd, &rfds))
+			do_keyboard(s);
+
+		if (FD_ISSET(s->mfd, &rfds))
+			do_mouse(s);
 	}
 }
 
@@ -329,6 +439,6 @@ int main (int argc, char **argv)
 {
 	parse_cmdline(argc, argv);
 	prepare_system(&parms, &state);
-	process_events(&parms, &state);
+	process_events(&state);
 	return 0;
 }

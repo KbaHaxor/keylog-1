@@ -253,3 +253,6 @@
 253	<void>	<void>	N
 254	<void>	<void>	N
 255	<void>	<void>	N
+272	<mouse1>	<mouse1>	N
+273	<mouse3>	<mouse3>	N
+274	<mouse2>	<mouse2>	N
