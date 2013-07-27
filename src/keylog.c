@@ -23,6 +23,7 @@ struct state
 	const char *shifted[256];
 	int ismod[256];
 	int isdown[256];
+	int shiftcount;
 };
 
 static struct parms parms =
@@ -37,7 +38,8 @@ static struct state state =
 	{ NULL },
 	{ NULL },
 	{ 0 },
-	{ 0 }
+	{ 0 },
+	0
 };
 
 static void die (const char *msg)
@@ -152,7 +154,9 @@ static void prepare_system (const struct parms *p, struct state *s)
 
 static const char * event_name (struct state *s, unsigned short c)
 {
-	return s->normal[c];
+	int shift = 0;
+	if (s->shiftcount)  shift ^= 1;
+	return shift ? s->shifted[c] : s->normal[c];
 }
 
 static void show_key (struct state *s, unsigned short c)
@@ -160,13 +164,39 @@ static void show_key (struct state *s, unsigned short c)
 	printf("%s", event_name(s,c));
 }
 
-static void show_modifiers (struct state *s)
+// filter out S- if event_name() will use other keymap
+static int want_to_see (struct state *s, unsigned short c, int m)
 {
-	int i;
-	for (i=1; i<255; i++)
-		if (s->isdown[i])
-			if (s->ismod[i])
-				show_key(s,i);
+	if (!strcmp(s->normal[c], s->shifted[c])) return 1;
+	if (!strcmp(s->normal[m], "S-")) return 0;
+	return 1;
+}
+
+static void show_modifiers (struct state *s, unsigned short c)
+{
+	int m;
+	for (m=1; m<255; m++)
+		if (s->isdown[m])
+			if (s->ismod[m])
+				if (want_to_see(s,c,m))
+					show_key(s,m);
+}
+
+static void key_up (struct state *s, unsigned short c)
+{
+	s->isdown[c] = 0;
+
+	if (s->shiftcount)
+		if (!strcmp(s->normal[c], "S-"))
+			s->shiftcount--;
+}
+
+static void key_down (struct state *s, unsigned short c)
+{
+	s->isdown[c] = 1;
+
+	if (!strcmp(s->normal[c], "S-"))
+		s->shiftcount++;
 }
 
 static void process_events (const struct parms *p, struct state *s)
@@ -188,16 +218,16 @@ static void process_events (const struct parms *p, struct state *s)
 		switch (e.value)
 		{
 		case 0:   // key up
-			s->isdown[e.code] = 0;
+			key_up(s,e.code);
 			break;
 
 		case 1:   // key down
-			s->isdown[e.code] = 1;
+			key_down(s,e.code);
 			repeat = -1;
 			if (!s->ismod[e.code])
 			{
 				repeat = 1;
-				show_modifiers(s);
+				show_modifiers(s,e.code);
 				show_key(s,e.code);
 				printf("\n");
 				fflush(stdout);
