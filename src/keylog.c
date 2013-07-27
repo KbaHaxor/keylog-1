@@ -112,6 +112,7 @@ static void key_down (struct state *s, unsigned short c)
 
 static void prepare_system (const struct parms *p, struct state *s)
 {
+	unsigned long leds;
 	char name[1024];
 	uint8_t keys[16];
 	struct stat sb;
@@ -197,6 +198,11 @@ static void prepare_system (const struct parms *p, struct state *s)
 			if (keys[i] & (1 << j))
 				key_down(s,(i*8) + j);
 
+	if (ioctl (s->fd, EVIOCGLED(sizeof leds), &leds) < 0)
+		die("ioctl");
+
+	if (leds & (1 << LED_CAPSL))
+		s->capslock = 1;
 }
 
 static const char * event_name (struct state *s, unsigned short c)
