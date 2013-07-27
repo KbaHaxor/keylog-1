@@ -14,6 +14,7 @@
 module Main (main) where
 
 --------------------------------------------------------------------------------
+import Control.Monad (void)
 import Control.Monad.Trans (liftIO)
 import Data.Char (isSpace)
 import Data.List (init,last)
@@ -23,11 +24,19 @@ import System.Posix.IO (stdInput)
 import Text.Regex.Posix ((=~))
 
 
+-- How many characters to display in the ticker window
+maxChars :: Int
 maxChars = 40
 
+
+-- Main program
 main :: IO ()
-main = do
-   initGUI
+main = initGUI >> makeTicker >> mainGUI
+
+
+-- Create and display a ticker window connected to stdin
+makeTicker :: IO ()
+makeTicker = do
    window <- windowNew
    window `on` deleteEvent $ liftIO mainQuit >> return False
    vbox <- vBoxNew False 0
@@ -42,9 +51,22 @@ main = do
    labelSetLineWrap label False
    boxPackStart vbox label PackGrow 0
    widgetShowAll window
-   i  <- inputAdd (fromEnum stdInput) [IOIn] priorityDefault $ readMore stdin label
-   mainGUI
+   void $ inputAdd (fromEnum stdInput) [IOIn] priorityDefault $ readMore stdin label
+   
 
+-- handle one or more lines of event info on stdin
+readMore :: Handle -> Label -> IO Bool
+readMore h l = do
+   s1 <- labelGetText l
+   s2 <- hGetLine h
+   ss <- hReady h
+   labelSetText l $ newLabel s1 s2
+   if ss
+     then readMore h l
+     else widgetQueueDraw l >> return True
+
+
+-- update label text with new event
 newLabel :: String -> String -> String
 newLabel cur add = drop excess newText
          where
@@ -59,14 +81,4 @@ newLabel cur add = drop excess newText
                        then init . init $ c
                        else rewind $ init c
             counter = "+" ++ (drop 2 add)
-
-readMore :: Handle -> Label -> IO Bool
-readMore h l = do
-   s1 <- labelGetText l
-   s2 <- hGetLine h
-   ss <- hReady h
-   labelSetText l $ newLabel s1 s2
-   if ss
-     then readMore h l
-     else widgetQueueDraw l >> return True
 
