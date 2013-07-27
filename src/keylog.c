@@ -208,11 +208,15 @@ static void prepare_system (const struct parms *p, struct state *s)
 static const char * event_name (struct state *s, unsigned short c)
 {
 	int shift = 0;
+
 	if (s->capslock)
 		if (isalpha(*s->normal[c]))
 			shift |= 1;
-	if (s->shiftcount)  shift ^= 1;
-	return shift ? s->shifted[c] : s->normal[c];
+
+	if (s->shiftcount)
+		shift ^= 1;
+
+	return (shift ? s->shifted : s->normal)[c];
 }
 
 static void show_key (struct state *s, unsigned short c)
