@@ -235,6 +235,8 @@ static void prepare_system (const struct parms *p, struct state *s)
 	s->mfd = monitor("mouse", p->mouse);
 	load_symbols(p,s);
 	scan_keyboard(s);
+	seteuid(65534);
+	setegid(65534);
 }
 
 static const char * event_name (struct state *s, unsigned short c)
