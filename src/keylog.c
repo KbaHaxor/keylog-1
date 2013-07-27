@@ -147,7 +147,7 @@ static int monitor (const char *type, const char *dev)
 static void load_symbols (const struct parms *p, struct state *s)
 {
 	struct stat sb;
-	void *map;
+	char *map;
 	char *tok;
 	int fd;
 
@@ -157,11 +157,13 @@ static void load_symbols (const struct parms *p, struct state *s)
 	if (fstat(fd, &sb) == -1)
 		die("fstat");
 
-	if ((map = mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_PRIVATE,fd,0)) == MAP_FAILED)
+	if ((map = (char *)mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_PRIVATE,fd,0)) == MAP_FAILED)
 		die("mmap");
 
 	if (close(fd) < 0)
 		die("close");
+
+	map[sb.st_size-1] = '\0';
 
 	if ((tok = strtok((char*)map, "\t")) == NULL)
 		die("strtok");
