@@ -16,7 +16,6 @@ Run the collector into the gui with a pipe:
 
 
 TODO:
-  - handle shifted key display better
   - make window boring
   - make window appear on all workspaces
   - bundle all XMonad config into a module

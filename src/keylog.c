@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <getopt.h>
+#include <ctype.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -24,6 +25,7 @@ struct state
 	int ismod[256];
 	int isdown[256];
 	int shiftcount;
+	int capslock;
 };
 
 static struct parms parms =
@@ -39,6 +41,7 @@ static struct state state =
 	{ NULL },
 	{ 0 },
 	{ 0 },
+	0,
 	0
 };
 
@@ -155,6 +158,9 @@ static void prepare_system (const struct parms *p, struct state *s)
 static const char * event_name (struct state *s, unsigned short c)
 {
 	int shift = 0;
+	if (s->capslock)
+		if (isalpha(*s->normal[c]))
+			shift |= 1;
 	if (s->shiftcount)  shift ^= 1;
 	return shift ? s->shifted[c] : s->normal[c];
 }
@@ -197,6 +203,10 @@ static void key_down (struct state *s, unsigned short c)
 
 	if (!strcmp(s->normal[c], "S-"))
 		s->shiftcount++;
+
+	if (!strcmp(s->normal[c], "<caps_lock>"))
+		if (s->shiftcount == 0)
+			s->capslock ^= 1;
 }
 
 static void process_events (const struct parms *p, struct state *s)
