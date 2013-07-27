@@ -12,6 +12,10 @@
 #include <fcntl.h>
 #include <linux/input.h>
 
+
+const char *sym_shift = "S-";
+const char *sym_caps = "<caps_lock>";
+
 struct parms
 {
 	const char *keyboard;
@@ -103,7 +107,7 @@ static void key_up (struct state *s, unsigned short c)
 	s->isdown[c] = 0;
 
 	if (s->shiftcount)
-		if (!strcmp(s->normal[c], "S-"))
+		if (!strcmp(s->normal[c], sym_shift))
 			s->shiftcount--;
 }
 
@@ -111,10 +115,10 @@ static void key_down (struct state *s, unsigned short c)
 {
 	s->isdown[c] = 1;
 
-	if (!strcmp(s->normal[c], "S-"))
+	if (!strcmp(s->normal[c], sym_shift))
 		s->shiftcount++;
 
-	if (!strcmp(s->normal[c], "<caps_lock>"))
+	if (!strcmp(s->normal[c], sym_caps))
 		if (s->shiftcount == 0)
 			s->capslock ^= 1;
 }
@@ -254,7 +258,7 @@ static void show_key (struct state *s, unsigned short c)
 static int want_to_see (struct state *s, unsigned short c, int m)
 {
 	if (!strcmp(s->normal[c], s->shifted[c])) return 1;
-	if (!strcmp(s->normal[m], "S-")) return 0;
+	if (!strcmp(s->normal[m], sym_shift)) return 0;
 	return 1;
 }
 

@@ -19,3 +19,7 @@ To create a custom keymap:
   # showkey
   $ vi keymap.txt
 
+There are two magic symbols:
+  - both shift keys must be "S-"
+  - caps lock must be "<caps_lock>"
+
