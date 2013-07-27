@@ -112,6 +112,7 @@ static void key_down (struct state *s, unsigned short c)
 
 static void prepare_system (const struct parms *p, struct state *s)
 {
+	char name[1024];
 	uint8_t keys[16];
 	struct stat sb;
 	void *map;
@@ -123,6 +124,16 @@ static void prepare_system (const struct parms *p, struct state *s)
 		die("open");
 
 	s->fd = fd;
+
+	if (ioctl (s->fd, EVIOCGNAME(sizeof name), &name) < 0)
+		die("ioctl");
+
+	fprintf(stderr, "Monitoring %s", name);
+
+	if (ioctl (s->fd, EVIOCGPHYS(sizeof name), &name) < 0)
+		die("ioctl");
+
+	fprintf(stderr, " on %s\n", name);
 
 	if ((fd = open(p->keymap, O_RDWR)) < 0)
 		die("open");
