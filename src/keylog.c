@@ -62,8 +62,8 @@ struct state
 
 static struct parms parms =
 {
-	"/dev/input/event2",
-	"/dev/input/event3",
+	"event2",
+	"event3",
 	"keymap.txt"
 };
 
@@ -134,6 +134,21 @@ static void kill_priv (void)
 		die("setreuid");
 }
 
+// make sure p is of the form "eventN" for integer N
+static const char * check (const char * p)
+{
+	const char *q;
+
+	if (strncmp(p,"event",5) != 0)
+		die("strncmp");
+
+	for (q=p+5; *q; q++)
+		if (!isdigit(*q))
+			die("isdigit");
+
+	return p;
+}
+
 static void parse_cmdline (int argc, char **argv)
 {
 	static struct option opts[] =
@@ -150,11 +165,11 @@ static void parse_cmdline (int argc, char **argv)
 		switch (c)
 		{
 		case 'k':
-			parms.keyboard = optarg;
+			parms.keyboard = check(optarg);
 			break;
 
 		case 'm':
-			parms.mouse = optarg;
+			parms.mouse = check(optarg);
 			break;
 
 		case 's':
@@ -212,9 +227,12 @@ static int monitor (const char *type, const char *dev)
 	char name[1024];
 	int fd;
 
+	if (sprintf(name, "/dev/input/%s", dev) < 0)
+		die("sprintf");
+
 	take_priv();
 
-	if ((fd = open(dev, O_RDONLY)) < 0)
+	if ((fd = open(name, O_RDONLY)) < 0)
 		die("open");
 
 	drop_priv();
