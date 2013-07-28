@@ -334,7 +334,7 @@ static void load_symbols (const struct parms *p, struct state *s)
 static void scan_keyboard (struct state *s)
 {
 	unsigned long leds;
-	uint8_t keys[16];
+	uint8_t keys[MAXSYM / 8 + 1];
 	int i,j;
 
 	if (ioctl (s->kfd, EVIOCGKEY(sizeof keys), &keys) < 0)
