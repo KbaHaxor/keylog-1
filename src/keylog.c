@@ -108,6 +108,15 @@ static void drop_priv (void)
 		die("setreuid");
 }
 
+static void kill_priv (void)
+{
+	if (setregid(rgid,rgid) < 0)
+		die("setregid");
+
+	if (setreuid(ruid,ruid) < 0)
+		die("setreuid");
+}
+
 static void parse_cmdline (int argc, char **argv)
 {
 	static struct option opts[] =
@@ -303,6 +312,7 @@ static void prepare_system (const struct parms *p, struct state *s)
 {
 	s->kfd = monitor("keyboard", p->keyboard);
 	s->mfd = monitor("mouse", p->mouse);
+	kill_priv();
 	load_symbols(p,s);
 	scan_keyboard(s);
 }
