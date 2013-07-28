@@ -527,15 +527,8 @@ static void show_rel (struct state *s, const char *sym, int n)
 
 	while (n--)
 	{
-		if (s->lastcount)
-		{
-			show_last(s);
-		}
-		else
-		{
-			show_modifiers(s,1); // hack
-			show_string(s,sym);
-		}
+		show_modifiers(s,1); // hack
+		show_string(s,sym);
 		flush(s);
 	}
 }
@@ -579,6 +572,9 @@ static void do_mouse (struct state *s)
 	case EV_REL:
 		if (e.code != REL_WHEEL)
 			return;
+
+		s->lastkey = 0;
+		s->lastcount = 0;
 
 		if (e.value > 0)
 			show_rel(s, sym_mouse4, e.value);
