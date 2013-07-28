@@ -63,11 +63,10 @@ data Ticker = Ticker Handle Label [String]
 
 
 -- attach stdin to the label
-connectStdinTo :: Label -> IO ()
+connectStdinTo :: Label -> IO HandlerId
 connectStdinTo label = do
    m <- newMVar $ Ticker stdin label []
    inputAdd (fromEnum stdInput) [IOIn] priorityDefault (readAll m)
-   return ()
  
 
 -- drain events from stdin, then update label
