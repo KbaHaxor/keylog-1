@@ -144,8 +144,7 @@ static void key_down (struct state *s, unsigned short c)
 	}
 
 	if (!strcmp(s->normal[c], sym_caps))
-		if (s->shiftcount == 0)
-			s->capslock ^= 1;
+		s->capslock ^= 1;
 }
 
 static int monitor (const char *type, const char *dev)
