@@ -19,6 +19,8 @@
 static const char *sym_shift = "S-";
 static const char *sym_caps = "<caps_lock>";
 static const char *sym_undef = "<UNDEF>";
+static const char *sym_mouse4 = "<mouse-4>";
+static const char *sym_mouse5 = "<mouse-5>";
 
 struct parms
 {
@@ -206,6 +208,7 @@ static void load_symbols (const struct parms *p, struct state *s)
 			s->ismod[code] = 0;
 			break;
 		default:
+			fprintf(stderr,"%d\n", code);
 			die("ismod");
 		}
 
@@ -388,15 +391,13 @@ static void do_mouse (struct state *s)
 		{
 		case 1:   // wheel up
 			show_modifiers(s,1); // hack
-			printf("<mouse4>");
-			printf("\n");
+			printf("%s\n",sym_mouse4);
 			fflush(stdout);
 			break;
 
 		case -1:   // wheel down
 			show_modifiers(s,1); // hack
-			printf("<mouse5>");
-			printf("\n");
+			printf("%s\n",sym_mouse5);
 			fflush(stdout);
 			break;
 
