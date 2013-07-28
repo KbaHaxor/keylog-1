@@ -542,14 +542,13 @@ static void process_events (struct state *s)
 	while (1)
 	{
 		fd_set rfds;
-		int rc;
 
 		FD_ZERO(&rfds);
 
 		FD_SET(s->kfd, &rfds);
 		FD_SET(s->mfd, &rfds);
 
-		if ((rc = select(nfds, &rfds, NULL, NULL, NULL)) < 0)
+		if (select(nfds, &rfds, NULL, NULL, NULL) < 0)
 			die("select");
 
 		if (FD_ISSET(s->kfd, &rfds))
