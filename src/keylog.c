@@ -77,6 +77,35 @@ static void usage (void)
 	exit(-1);
 }
 
+static uid_t ruid, euid;
+static gid_t rgid, egid;
+
+static void init_priv (void)
+{
+	ruid = getuid();
+	euid = geteuid();
+	rgid = getgid();
+	egid = getegid();
+}
+
+static void take_priv (void)
+{
+	if (setreuid(ruid,euid) < 0)
+		die("setreuid");
+
+	if (setregid(rgid,egid) < 0)
+		die("setregid");
+}
+
+static void drop_priv (void)
+{
+	if (setregid(egid,rgid) < 0)
+		die("setregid");
+
+	if (setreuid(euid,ruid) < 0)
+		die("setreuid");
+}
+
 static void parse_cmdline (int argc, char **argv)
 {
 	static struct option opts[] =
@@ -155,8 +184,12 @@ static int monitor (const char *type, const char *dev)
 	char name[1024];
 	int fd;
 
+	take_priv();
+
 	if ((fd = open(dev, O_RDONLY)) < 0)
 		die("open");
+
+	drop_priv();
 
 	if (ioctl (fd, EVIOCGNAME(sizeof name), &name) < 0)
 		die("ioctl");
@@ -270,8 +303,6 @@ static void prepare_system (const struct parms *p, struct state *s)
 	s->mfd = monitor("mouse", p->mouse);
 	load_symbols(p,s);
 	scan_keyboard(s);
-	seteuid(65534);
-	setegid(65534);
 }
 
 static const char * event_name (struct state *s, unsigned short c)
@@ -465,6 +496,8 @@ static void process_events (struct state *s)
 
 int main (int argc, char **argv)
 {
+	init_priv();
+	drop_priv();
 	parse_cmdline(argc, argv);
 	prepare_system(&parms, &state);
 	process_events(&state);
