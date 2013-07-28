@@ -39,6 +39,7 @@ struct state
 	int isdown[MAXSYM];
 	int shiftcount;
 	int capslock;
+	int disable_output;
 };
 
 static struct parms parms =
@@ -56,6 +57,7 @@ static struct state state =
 	{ NULL },
 	{ 0 },
 	{ 0 },
+	0,
 	0,
 	0
 };
@@ -108,6 +110,15 @@ static void parse_cmdline (int argc, char **argv)
 		die("excess cmdline args");
 }
 
+static void flush (struct state *s)
+{
+	if (s->disable_output)
+		return;
+
+	printf("\n");
+	fflush(stdout);
+}
+
 static void key_up (struct state *s, unsigned short c)
 {
 	s->isdown[c] = 0;
@@ -122,7 +133,15 @@ static void key_down (struct state *s, unsigned short c)
 	s->isdown[c] = 1;
 
 	if (!strcmp(s->normal[c], sym_shift))
+	{
 		s->shiftcount++;
+		if (s->shiftcount == 2)
+		{
+			printf(s->disable_output ? "RESUME\n" : "SUSPEND\n");
+			fflush(stdout);
+			s->disable_output ^= 1;
+		}
+	}
 
 	if (!strcmp(s->normal[c], sym_caps))
 		if (s->shiftcount == 0)
@@ -272,7 +291,8 @@ static const char * event_name (struct state *s, unsigned short c)
 
 static void show_key (struct state *s, unsigned short c)
 {
-	printf("%s", event_name(s,c));
+	if (!s->disable_output)
+		printf("%s", event_name(s,c));
 }
 
 // filter out S- if event_name() will use other symbols
@@ -324,16 +344,19 @@ static void do_keyboard (struct state *s)
 			repeat = 1;
 			show_modifiers(s,e.code);
 			show_key(s,e.code);
-			printf("\n");
-			fflush(stdout);
+			flush(s);
 		}
 		break;
 
 	case 2:   // key repeat
 		if (repeat > 0)
 		{
-			printf("+ %d\n", repeat++);
-			fflush(stdout);
+			repeat++;
+			if (!s->disable_output)
+			{
+				printf("+ %d", repeat);
+				flush(s);
+			}
 		}
 		break;
 
@@ -373,8 +396,7 @@ static void do_mouse (struct state *s)
 			{
 				show_modifiers(s,e.code);
 				show_key(s,e.code);
-				printf("\n");
-				fflush(stdout);
+				flush(s);
 			}
 			break;
 
@@ -390,15 +412,21 @@ static void do_mouse (struct state *s)
 		switch (e.value)
 		{
 		case 1:   // wheel up
-			show_modifiers(s,1); // hack
-			printf("%s\n",sym_mouse4);
-			fflush(stdout);
+			if (!s->disable_output)
+			{
+				show_modifiers(s,1); // hack
+				printf("%s",sym_mouse4);
+				flush(s);
+			}
 			break;
 
 		case -1:   // wheel down
-			show_modifiers(s,1); // hack
-			printf("%s\n",sym_mouse5);
-			fflush(stdout);
+			if (!s->disable_output)
+			{
+				show_modifiers(s,1); // hack
+				printf("%s",sym_mouse5);
+				flush(s);
+			}
 			break;
 
 		default:
