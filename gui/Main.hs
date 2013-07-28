@@ -24,8 +24,8 @@ import Text.Regex.Posix ((=~))
 
 
 -- Tweakables
-tickerFont = "courier bold 12"
-tickerLen  = 60
+tickerFont = "courier bold 10"
+tickerLen  = 70
 
 
 -- Entry point
