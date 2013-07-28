@@ -37,6 +37,7 @@ struct state
 	const char *shifted[MAXSYM];
 	int ismod[MAXSYM];
 	int isdown[MAXSYM];
+	int repeat;
 	int shiftcount;
 	int capslock;
 	int disable_output;
@@ -57,6 +58,7 @@ static struct state state =
 	{ NULL },
 	{ 0 },
 	{ 0 },
+	0,
 	0,
 	0,
 	0
@@ -345,7 +347,6 @@ static void show_modifiers (struct state *s, unsigned short c)
 
 static void do_keyboard (struct state *s)
 {
-	static int repeat = 0;
 	struct input_event e;
 
 	if (read(s->kfd, &e, sizeof(e)) != sizeof(e))
@@ -368,10 +369,10 @@ static void do_keyboard (struct state *s)
 
 	case 1:   // key down
 		key_down(s,e.code);
-		repeat = -1;
+		s->repeat = -1;
 		if (!s->ismod[e.code])
 		{
-			repeat = 1;
+			s->repeat = 1;
 			show_modifiers(s,e.code);
 			show_key(s,e.code);
 			flush(s);
@@ -379,12 +380,12 @@ static void do_keyboard (struct state *s)
 		break;
 
 	case 2:   // key repeat
-		if (repeat > 0)
+		if (s->repeat > 0)
 		{
-			repeat++;
+			s->repeat++;
 			if (!s->disable_output)
 			{
-				printf("+ %d", repeat);
+				printf("+ %d", s->repeat);
 				flush(s);
 			}
 		}
