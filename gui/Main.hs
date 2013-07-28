@@ -110,9 +110,11 @@ processEvents ss@(s:t:u) = (string,list)
       strings  = takeWhile short $ scanl1 join merged
       short x  = length x < tickerLen
       join a b = b ++ " " ++ a
-      merged   = if repeat s && repeat t
+      merged   = if both repeat || both multi
                    then (s:u)
                    else ss
+      both f   = f s && f t
       repeat x = x =~ "^\\+[0-9]"
+      multi x  = x =~ "^\\*[0-9]"
       list     = take (length strings) merged
 
