@@ -468,6 +468,22 @@ static void do_keyboard (struct state *s)
 	}
 }
 
+static void show_rel (struct state *s, const char *sym, int n)
+{
+	if (n > 3)
+	{
+		fprintf(stderr, "%s: reported %d, limiting to 3...\n", sym, n);
+		n = 3;
+	}
+
+	while (n--)
+	{
+		show_modifiers(s,1); // hack
+		show_string(s,sym);
+		flush(s);
+	}
+}
+
 static void do_mouse (struct state *s)
 {
 	struct input_event e;
@@ -510,24 +526,13 @@ static void do_mouse (struct state *s)
 		if (e.code != REL_WHEEL)
 			return;
 
-		switch (e.value)
-		{
-		case 1:   // wheel up
-			show_modifiers(s,1); // hack
-			show_string(s,sym_mouse4);
-			flush(s);
-			break;
+		if (e.value > 0)
+			show_rel(s, sym_mouse4, e.value);
+		else if (e.value < 0)
+			show_rel(s, sym_mouse5, -e.value);
+		else
+			fprintf(stderr, "EV_REL zero, ignoring...\n");
 
-		case -1:   // wheel down
-			show_modifiers(s,1); // hack
-			show_string(s,sym_mouse5);
-			flush(s);
-			break;
-
-		default:
-			fprintf(stderr, "Bad EV_REL value %d\n", e.value);
-			die("value");
-		}
 		break;
 
 	default:
