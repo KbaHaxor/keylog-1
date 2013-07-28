@@ -190,6 +190,12 @@ static void load_symbols (const struct parms *p, struct state *s)
 
 	map[sb.st_size-1] = '\0';
 
+	for (i=0; i<MAXSYM; i++)
+	{
+		s->normal[i] = sym_undef;
+		s->shifted[i] = sym_undef;
+	}
+
 	if ((tok = strtok((char*)map, "\t")) == NULL)
 		die("strtok");
 
@@ -232,15 +238,6 @@ static void load_symbols (const struct parms *p, struct state *s)
 
 		tok = strtok(NULL,"\t");
 	}
-
-	for (i=0; i<MAXSYM; i++)
-		if (!s->normal[i])
-			s->normal[i] = sym_undef;
-
-	for (i=0; i<MAXSYM; i++)
-		if (!s->shifted[i])
-			s->shifted[i] = sym_undef;
-
 }
 
 static void scan_keyboard (struct state *s)
