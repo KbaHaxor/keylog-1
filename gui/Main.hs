@@ -14,71 +14,103 @@
 module Main (main) where
 
 --------------------------------------------------------------------------------
-import Control.Monad (void)
+import Control.Concurrent.MVar (MVar,newMVar,takeMVar,putMVar)
 import Control.Monad.Trans (liftIO)
-import Data.Char (isSpace)
-import Data.List (init,last)
+import Data.List (last)
 import Graphics.UI.Gtk
 import System.IO (Handle,stdin,hGetLine,hReady)
 import System.Posix.IO (stdInput)
 import Text.Regex.Posix ((=~))
 
 
--- How many characters to display in the ticker window
-maxChars :: Int
-maxChars = 60
+-- Tweakables
+tickerFont = "courier bold 12"
+tickerLen  = 60
 
 
--- Main program
-main :: IO ()
+-- Entry point
 main = initGUI >> makeTicker >> mainGUI
 
 
--- Create and display a ticker window connected to stdin
+-- Create and display a ticker window displaying event stream on stdin
 makeTicker :: IO ()
 makeTicker = do
    window <- windowNew
    window `on` deleteEvent $ liftIO mainQuit >> return False
-   vbox <- vBoxNew False 0
+   vbox <- vBoxNew True 0
    containerAdd window vbox
-   font <- fontDescriptionFromString "courier bold 12"
-   label <- labelNew (Just "Keylog GUI: ")
-   miscSetAlignment label 1 0
-   widgetModifyFont label (Just font)
-   labelSetSingleLineMode label True
-   labelSetMaxWidthChars label maxChars
-   labelSetJustify label JustifyRight
-   labelSetLineWrap label False
+   label <- makeLabel
    boxPackStart vbox label PackGrow 0
+   connectStdinTo label
    widgetShowAll window
-   void $ inputAdd (fromEnum stdInput) [IOIn] priorityDefault $ readMore stdin label
-   
-
--- handle one or more lines of event info on stdin
-readMore :: Handle -> Label -> IO Bool
-readMore h l = do
-   s1 <- labelGetText l
-   s2 <- hGetLine h
-   ss <- hReady h
-   labelSetText l $ newLabel s1 s2
-   if ss
-     then readMore h l
-     else widgetQueueDraw l >> return True
 
 
--- update label text with new event
-newLabel :: String -> String -> String
-newLabel cur add = drop excess newText
-         where
-            excess = length newText - maxChars
-            newText = base ++ "  " ++ tail
-            base | add == "+ 1"   = cur
-                 | add =~ "^\\+ " = rewind cur
-                 | otherwise      = cur
-            tail | add =~ "^\\+ " = counter
-                 | otherwise      = add
-            rewind c = if isSpace $ last c
-                       then init . init $ c
-                       else rewind $ init c
-            counter = "+" ++ (drop 2 add)
+-- Create the label widget
+makeLabel :: IO Label
+makeLabel = do
+   label <- labelNew (Just "")
+   miscSetAlignment label 1 0
+   font <- fontDescriptionFromString tickerFont
+   widgetModifyFont label (Just font)
+   return label
+
+
+-- Ticker state
+data Ticker = Ticker Handle Label [String]
+
+
+-- attach stdin to the label
+connectStdinTo :: Label -> IO ()
+connectStdinTo label = do
+   m <- newMVar $ Ticker stdin label []
+   inputAdd (fromEnum stdInput) [IOIn] priorityDefault (readAll m)
+   return ()
+ 
+
+-- drain events from stdin, then update label
+readAll :: MVar Ticker -> IO Bool
+readAll m = do
+   more <- readOne m
+   if more
+     then readAll m
+     else updateLabel m >> return True
+
+
+-- read and save one line from stdin, returning True if more lines available
+readOne :: MVar Ticker -> IO Bool
+readOne m = do
+   (Ticker h l ss) <- takeMVar m
+   s <- hGetLine h
+   putMVar m $ Ticker h l (s:ss)
+   hReady h
+
+
+-- update label text and discard old events
+updateLabel :: MVar Ticker -> IO ()
+updateLabel m = do
+   (Ticker h l ss) <- takeMVar m
+   let (t,ss') = processEvents ss
+   putMVar m $ Ticker h l ss'
+   labelSetText l t
+   widgetQueueDraw l
+
+
+-- given a list of events, most recent first, merge typematic repeat
+-- events, then join the merged event list into a string not exceeding
+-- tickerLen in length. discard older events not included in the string
+-- and return the string along with the trimmed event list
+processEvents :: [String] -> (String,[String])
+processEvents []         = ("", [])
+processEvents [s]        = (s, [s])
+processEvents ss@(s:t:u) = (string,list)
+   where
+      string   = last strings
+      strings  = takeWhile short $ scanl1 join merged
+      short x  = length x < tickerLen
+      join a b = b ++ " " ++ a
+      merged   = if repeat s && repeat t
+                   then (s:u)
+                   else ss
+      repeat x = x =~ "^\\+[0-9]"
+      list     = take (length strings) merged
 
