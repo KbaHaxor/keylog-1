@@ -55,6 +55,8 @@ struct state
 	int ismod[MAXSYM];
 	int isdown[MAXSYM];
 	int repeat;
+	int lastkey;
+	int lastcount;
 	int shiftcount;
 	int capslock;
 	int disable_output;
@@ -75,6 +77,8 @@ static struct state state =
 	{ NULL },
 	{ 0 },
 	{ 0 },
+	0,
+	0,
 	0,
 	0,
 	0,
@@ -200,6 +204,12 @@ static void key_up (struct state *s, unsigned short c)
 {
 	s->isdown[c] = 0;
 
+	if (c != s->lastkey)
+	{
+		s->lastkey = 0;
+		s->lastcount = 0;
+	}
+
 	if (s->shiftcount)
 		if (!strcmp(s->normal[c], sym_shift))
 			s->shiftcount--;
@@ -208,6 +218,21 @@ static void key_up (struct state *s, unsigned short c)
 static void key_down (struct state *s, unsigned short c)
 {
 	s->isdown[c] = 1;
+
+	if (s->ismod[c])
+	{
+		s->lastkey = 0;
+		s->lastcount = 0;
+	}
+	else if (c == s->lastkey)
+	{
+		s->lastcount++;
+	}
+	else
+	{
+		s->lastkey = c;
+		s->lastcount = 0;
+	}
 
 	if (!strcmp(s->normal[c], sym_shift))
 	{
@@ -416,6 +441,27 @@ static void show_modifiers (struct state *s, unsigned short c)
 					show_key(s,m);
 }
 
+static void show_last (struct state *s)
+{
+	if (!s->disable_output)
+		printf("*%d", s->lastcount+1);
+}
+
+static void show_press (struct state *s, unsigned short c)
+{
+	if (s->lastcount)
+	{
+		show_last(s);
+	}
+	else
+	{
+		show_modifiers(s,c);
+		show_key(s,c);
+	}
+	flush(s);
+}
+
+
 static void do_keyboard (struct state *s)
 {
 	struct input_event e;
@@ -447,15 +493,18 @@ static void do_keyboard (struct state *s)
 		else
 		{
 			s->repeat = 1;
-			show_modifiers(s,e.code);
-			show_key(s,e.code);
-			flush(s);
+			show_press(s,e.code);
 		}
 		break;
 
 	case 2:   // key repeat
 		if (s->repeat > 0)
 		{
+			if (s->lastkey != 0)
+			{
+				s->lastkey = 0;
+				s->lastcount = 0;
+			}
 			show_repeat(s);
 			flush(s);
 			s->repeat++;
@@ -478,8 +527,15 @@ static void show_rel (struct state *s, const char *sym, int n)
 
 	while (n--)
 	{
-		show_modifiers(s,1); // hack
-		show_string(s,sym);
+		if (s->lastcount)
+		{
+			show_last(s);
+		}
+		else
+		{
+			show_modifiers(s,1); // hack
+			show_string(s,sym);
+		}
 		flush(s);
 	}
 }
@@ -511,9 +567,7 @@ static void do_mouse (struct state *s)
 
 		case 1:   // key down
 			key_down(s,e.code);
-			show_modifiers(s,e.code);
-			show_key(s,e.code);
-			flush(s);
+			show_press(s,e.code);
 			break;
 
 		default:
