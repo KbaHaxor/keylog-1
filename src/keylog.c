@@ -488,12 +488,9 @@ static void do_mouse (struct state *s)
 
 		case 1:   // key down
 			key_down(s,e.code);
-			if (!s->ismod[e.code])
-			{
-				show_modifiers(s,e.code);
-				show_key(s,e.code);
-				flush(s);
-			}
+			show_modifiers(s,e.code);
+			show_key(s,e.code);
+			flush(s);
 			break;
 
 		default:
