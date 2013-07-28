@@ -187,11 +187,13 @@ static void parse_cmdline (int argc, char **argv)
 
 static void flush (struct state *s)
 {
-	if (s->disable_output)
-		return;
+	if (!s->disable_output)
+	{
+		printf("\n");
 
-	printf("\n");
-	fflush(stdout);
+		if (fflush(stdout) != 0)
+			die("fflush");
+	}
 }
 
 static void key_up (struct state *s, unsigned short c)
@@ -213,7 +215,10 @@ static void key_down (struct state *s, unsigned short c)
 		if (s->shiftcount == 2)
 		{
 			printf(s->disable_output ? "RESUME\n" : "SUSPEND\n");
-			fflush(stdout);
+
+			if (fflush(stdout) != 0)
+				die("fflush");
+
 			s->disable_output ^= 1;
 		}
 	}
