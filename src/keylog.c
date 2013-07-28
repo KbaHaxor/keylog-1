@@ -62,8 +62,11 @@ static struct state state =
 	0
 };
 
-static void die (const char *msg)
+#define die(m) die_(__LINE__,(m))
+
+static void die_ (int line, const char *msg)
 {
+	fprintf(stderr, "At line %d: ", line);
 	perror(msg);
 	exit(-1);
 }
