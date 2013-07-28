@@ -43,7 +43,8 @@ makeTicker = do
    boxPackStart vbox label PackGrow 0
    connectStdinTo label
    widgetShowAll window
-
+   (ww,wh) <- windowGetSize window
+   windowMove window ((1920 - ww) `div` 2) (1080 - wh)
 
 -- Create the label widget
 makeLabel :: IO Label
@@ -52,6 +53,7 @@ makeLabel = do
    miscSetAlignment label 1 0
    font <- fontDescriptionFromString tickerFont
    widgetModifyFont label (Just font)
+   labelSetWidthChars label tickerLen
    return label
 
 
