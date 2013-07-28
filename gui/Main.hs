@@ -44,8 +44,8 @@ makeTicker = do
    boxPackStart vbox label PackGrow 0
    connectStdinTo label
    widgetShowAll window
-   (ww,wh) <- windowGetSize window
-   windowMove window ((1920 - ww) `div` 2) (1080 - wh)
+   positionWindow window
+
 
 -- Create the label widget
 makeLabel :: IO Label
@@ -56,6 +56,13 @@ makeLabel = do
    widgetModifyFont label (Just font)
    labelSetWidthChars label tickerLen
    return label
+
+
+-- position window at bottom center of 1080p display
+positionWindow :: Window -> IO ()
+positionWindow window = do
+   (ww,wh) <- windowGetSize window
+   windowMove window ((1920 - ww) `div` 2) (1080 - wh)
 
 
 -- Ticker state
