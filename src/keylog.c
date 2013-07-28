@@ -381,6 +381,12 @@ static void show_key (struct state *s, unsigned short c)
 		printf("%s", event_name(s,c));
 }
 
+static void show_repeat (struct state *s)
+{
+	if (!s->disable_output)
+		printf("+%d", s->repeat);
+}
+
 // filter out S- if event_name() will use other symbols
 static int want_to_see (struct state *s, unsigned short c, int m)
 {
@@ -441,11 +447,8 @@ static void do_keyboard (struct state *s)
 	case 2:   // key repeat
 		if (s->repeat > 0)
 		{
-			if (!s->disable_output)
-			{
-				printf("+%d", s->repeat);
-				flush(s);
-			}
+			show_repeat(s);
+			flush(s);
 			s->repeat++;
 		}
 		break;
