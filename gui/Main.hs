@@ -104,17 +104,24 @@ processEvents [s]        = (s, [s])
 processEvents ss@(s:t:u) = (string,list)
    where
       string   = last strings
-      strings  = takeWhile short $ scanl1 join merged
-      short x  = length x < tickerLen
-      join a b = b ++ sep a ++ a
-      sep a | repeat a  = ""
-            | multi a   = ""
-            | otherwise = " "
+      list     = take (length strings) merged
+
+      strings  = takeWhile fits joined
+                   where
+                     fits x = length x < tickerLen
+                     joined = scanl1 join merged
+                     join a b = b ++ sep a ++ a
+                       where
+                         sep a | repeat a  = ""
+                               | multi a   = ""
+                               | otherwise = " "
+
       merged   = if both repeat || both multi
                    then (s:u)
                    else ss
-      both f   = f s && f t
+                 where
+                   both f = f s && f t
+
       repeat x = x =~ "^\\+[0-9]"
       multi x  = x =~ "^\\*[0-9]"
-      list     = take (length strings) merged
 
