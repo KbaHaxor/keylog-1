@@ -441,12 +441,12 @@ static void do_keyboard (struct state *s)
 	case 2:   // key repeat
 		if (s->repeat > 0)
 		{
-			s->repeat++;
 			if (!s->disable_output)
 			{
 				printf("+%d", s->repeat);
 				flush(s);
 			}
+			s->repeat++;
 		}
 		break;
 
