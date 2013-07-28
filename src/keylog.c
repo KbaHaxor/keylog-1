@@ -397,7 +397,7 @@ static void show_modifiers (struct state *s, unsigned short c)
 {
 	int m;
 
-	for (m=1; m<MAXSYM-1; m++)
+	for (m=1; m<MAXSYM; m++)
 		if (s->isdown[m])
 			if (s->ismod[m])
 				if (want_to_see(s,c,m))
