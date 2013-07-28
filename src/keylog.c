@@ -227,8 +227,8 @@ static int monitor (const char *type, const char *dev)
 	char name[1024];
 	int fd;
 
-	if (sprintf(name, "/dev/input/%s", dev) < 0)
-		die("sprintf");
+	if (snprintf(name, sizeof(name), "/dev/input/%s", dev) < 0)
+		die("snprintf");
 
 	take_priv();
 
