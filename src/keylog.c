@@ -444,12 +444,12 @@ static void show_modifiers (struct state *s, unsigned short c)
 static void show_last (struct state *s)
 {
 	if (!s->disable_output)
-		printf("*%d", s->lastcount+1);
+		printf("*%d", s->lastcount);
 }
 
 static void show_press (struct state *s, unsigned short c)
 {
-	if (s->lastcount)
+	if (s->lastcount > 1)
 	{
 		show_last(s);
 	}
