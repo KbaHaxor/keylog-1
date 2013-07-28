@@ -237,12 +237,16 @@ static int monitor (const char *type, const char *dev)
 
 	drop_priv();
 
-	if (ioctl (fd, EVIOCGNAME(sizeof name), &name) < 0)
+	memset(name, 0, sizeof name);
+
+	if (ioctl (fd, EVIOCGNAME(sizeof name - 1), &name) < 0)
 		die("ioctl");
 
 	fprintf(stderr, "Monitoring %s \"%s\"", type, name);
 
-	if (ioctl (fd, EVIOCGPHYS(sizeof name), &name) < 0)
+	memset(name, 0, sizeof name);
+
+	if (ioctl (fd, EVIOCGPHYS(sizeof name - 1), &name) < 0)
 		die("ioctl");
 
 	fprintf(stderr, " on %s\n", name);
