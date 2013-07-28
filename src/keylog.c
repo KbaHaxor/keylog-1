@@ -434,8 +434,11 @@ static void do_keyboard (struct state *s)
 
 	case 1:   // key down
 		key_down(s,e.code);
-		s->repeat = -1;
-		if (!s->ismod[e.code])
+		if (s->ismod[e.code])
+		{
+			s->repeat = -1;
+		}
+		else
 		{
 			s->repeat = 1;
 			show_modifiers(s,e.code);
