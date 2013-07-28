@@ -15,6 +15,7 @@ module Main (main) where
 
 --------------------------------------------------------------------------------
 import Control.Concurrent.MVar (MVar,newMVar,takeMVar,putMVar)
+import Control.Monad.Loops (whileM_)
 import Control.Monad.Trans (liftIO)
 import Data.List (last)
 import Graphics.UI.Gtk
@@ -71,11 +72,7 @@ connectStdinTo label = do
 
 -- drain events from stdin, then update label
 readAll :: MVar Ticker -> IO Bool
-readAll m = do
-   more <- readOne m
-   if more
-     then readAll m
-     else updateLabel m >> return True
+readAll m = whileM_ (readOne m) (return ()) >> updateLabel m >> return True
 
 
 -- read and save one line from stdin, returning True if more lines available
