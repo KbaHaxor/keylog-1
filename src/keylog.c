@@ -387,6 +387,12 @@ static void show_repeat (struct state *s)
 		printf("+%d", s->repeat);
 }
 
+static void show_string (struct state *s, const char *x)
+{
+	if (!s->disable_output)
+		printf("%s", x);
+}
+
 // filter out S- if event_name() will use other symbols
 static int want_to_see (struct state *s, unsigned short c, int m)
 {
@@ -507,21 +513,15 @@ static void do_mouse (struct state *s)
 		switch (e.value)
 		{
 		case 1:   // wheel up
-			if (!s->disable_output)
-			{
-				show_modifiers(s,1); // hack
-				printf("%s",sym_mouse4);
-				flush(s);
-			}
+			show_modifiers(s,1); // hack
+			show_string(s,sym_mouse4);
+			flush(s);
 			break;
 
 		case -1:   // wheel down
-			if (!s->disable_output)
-			{
-				show_modifiers(s,1); // hack
-				printf("%s",sym_mouse5);
-				flush(s);
-			}
+			show_modifiers(s,1); // hack
+			show_string(s,sym_mouse5);
+			flush(s);
 			break;
 
 		default:
