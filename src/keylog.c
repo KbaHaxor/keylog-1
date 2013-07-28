@@ -457,7 +457,8 @@ static void do_keyboard (struct state *s)
 		break;
 
 	default:
-		die("bad keyboard value");
+		fprintf(stderr, "Bad EV_KEY value %d\n", e.value);
+		die("value");
 	}
 }
 
@@ -494,7 +495,8 @@ static void do_mouse (struct state *s)
 			break;
 
 		default:
-			die("bad mouse key value");
+			fprintf(stderr, "Bad EV_KEY value %d\n", e.value);
+			die("value");
 		}
 		break;
 
@@ -523,7 +525,8 @@ static void do_mouse (struct state *s)
 			break;
 
 		default:
-			die("bad mouse rel value");
+			fprintf(stderr, "Bad EV_REL value %d\n", e.value);
+			die("value");
 		}
 		break;
 
