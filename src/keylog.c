@@ -384,14 +384,19 @@ static void show_key (struct state *s, unsigned short c)
 // filter out S- if event_name() will use other symbols
 static int want_to_see (struct state *s, unsigned short c, int m)
 {
-	if (!strcmp(s->normal[c], s->shifted[c])) return 1;
-	if (!strcmp(s->normal[m], sym_shift)) return 0;
+	if (!strcmp(s->normal[c], s->shifted[c]))
+		return 1;
+
+	if (!strcmp(s->normal[m], sym_shift))
+		return 0;
+
 	return 1;
 }
 
 static void show_modifiers (struct state *s, unsigned short c)
 {
 	int m;
+
 	for (m=1; m<MAXSYM-1; m++)
 		if (s->isdown[m])
 			if (s->ismod[m])
