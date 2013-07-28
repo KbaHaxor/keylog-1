@@ -412,7 +412,7 @@ static void do_keyboard (struct state *s)
 			s->repeat++;
 			if (!s->disable_output)
 			{
-				printf("+ %d", s->repeat);
+				printf("+%d", s->repeat);
 				flush(s);
 			}
 		}
