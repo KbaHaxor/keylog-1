@@ -36,8 +36,9 @@
 static const char *sym_shift = "S-";
 static const char *sym_caps = "<caps_lock>";
 static const char *sym_undef = "<UNDEF>";
-static const char *sym_mouse4 = "<mouse-4>";
-static const char *sym_mouse5 = "<mouse-5>";
+
+static const unsigned short sym_mouse4 = 275;
+static const unsigned short sym_mouse5 = 276;
 
 struct parms
 {
@@ -517,19 +518,19 @@ static void do_keyboard (struct state *s)
 	}
 }
 
-static void show_rel (struct state *s, const char *sym, int n)
+static void show_rel (struct state *s, unsigned short c, int n)
 {
 	if (n > 3)
 	{
-		fprintf(stderr, "%s: reported %d, limiting to 3...\n", sym, n);
+		fprintf(stderr, "%s: reported %d, limiting to 3...\n", event_name(s,c), n);
 		n = 3;
 	}
 
 	while (n--)
 	{
-		show_modifiers(s,1); // hack
-		show_string(s,sym);
-		flush(s);
+		key_down(s,c);
+		show_press(s,c);
+		key_up(s,c);
 	}
 }
 
@@ -572,9 +573,6 @@ static void do_mouse (struct state *s)
 	case EV_REL:
 		if (e.code != REL_WHEEL)
 			return;
-
-		s->lastkey = 0;
-		s->lastcount = 0;
 
 		if (e.value > 0)
 			show_rel(s, sym_mouse4, e.value);

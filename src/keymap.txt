@@ -256,3 +256,5 @@
 272	<mouse-1>	<mouse-1>	N
 273	<mouse-3>	<mouse-3>	N
 274	<mouse-2>	<mouse-2>	N
+275	<mouse-4>	<mouse-4>	N
+276	<mouse-5>	<mouse-5>	N
