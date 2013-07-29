@@ -114,7 +114,7 @@ processEvents ss@(s:t:u) = (string,list)
 
       strings  = takeWhile fits joined
                    where
-                     fits x = length x < tickerLen
+                     fits x = length x <= tickerLen
                      joined = scanl1 join merged
                      join a b = b ++ sep a ++ a
                        where
