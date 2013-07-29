@@ -1,25 +1,10 @@
 A simple ticker-style display of keylogger data.
 
-Set up a manage hook in XMonad to display the window.
+Set up a manage hook in XMonad to ignore the window.
 
-   import XMonad.Hooks.ManageHelpers (doRectFloat)
-
-   myManageHooks :: ManageHook
-   myManageHooks = composeAll [ className =? "Keyloggui" --> doKeyloggui ]
-       where
-          doKeyloggui = doRectFloat $ RationalRect 0.4 0.98 0.2 0.02
+   keylogManageHook :: ManageHook
+   keylogManageHook = className =? "Keyloggui" --> doIgnore
 
 Run the collector into the gui with a pipe:
-  $ mkfifo key_stream
-  # keylog > key_stream
-  $ keyloggui < key_stream
-
-
-TODO:
-  - make window boring
-  - make window appear on all workspaces
-  - bundle all XMonad config into a module
-  - if you suspend collector with C-z, mouse to another window, then mouse back
-    and resume, it thinks C- is active until you hit ctrl key again.
-  - need way to disable collection during password entry, etc.
+  $ keylog | keyloggui
 

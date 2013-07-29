@@ -1,25 +1,78 @@
 A simple keylogger, developed for XMonad screencasting.
 
-To build:
+
+Building
+--------------------------------------------------------------------------------
   $ ./bootstrap.sh
   $ ./configure
   $ make
 
+
+
+Running
+--------------------------------------------------------------------------------
 To run:
-  $ cd src
-  # ./keylog [-k /dev/input/eventX] [-m /dev/input/eventY] [-s keymap.txt]
+  $ keylog [-k eventX] [-m eventY] [-s keymap.txt]
+
+All keystrokes will be logged on stdout, one line per keystroke. Three
+or more successive identical keystrokes will begin logging as as
+"*NN", with NN incrementing with each repeated keystroke. Holding down
+a key will begin logging as "+NN" when the autorepeat starts.
+
+To suspend logging, hit both shift keys simultaneously. Repeat to
+resume logging. SUSPEND and RESUME tokens will be logged.
+
+Several independent instances can be run at the same time.
+
+
+
+Device files
+--------------------------------------------------------------------------------
+The -k and -m arguments are names of device files under /dev/input for
+the keyboard and mouse, respectively. Each must be in the form
+"eventN" where N is one or more decimal numbers.
 
 To find keyboard and mouse device:
   $ grep "mouse\|sysrq" /proc/bus/input/devices
 
-To create a custom keymap:
+The keylog binary must be setuid root in order to open the device
+files. root privileges are permanently dropped after both files are
+opened.
+
+
+
+Keymaps
+--------------------------------------------------------------------------------
+The -s argument is a file full of 4 column tab-delimited records.
+Each record specifies how to display a particular keycode.
+
+   keycode\tsymbol1\tsymbol2\tismodifier
+
+   - keycode is the code from showkey
+   - symbol1 is the unshifted symbol to display
+   - symbol2 is the shifted symbol to display
+   - ismodifier is Y or N (for shift, ctrl, alt, etc)
+
+Any keycodes not defined in keymap.txt will be displayed as <UNDEF>.
+
+A make target is provided to create an initial keymap.txt.
+
   $ cd src
   $ rm keymap.txt
   $ make keymap.txt
+
+Use showkey and setkeycodes to identify and enable any problem keys,
+then edit the generated keymap.txt file and restart the logger to
+fine-tune the output.
+
   # showkey
+  # setkeycodes XXXX NNN
   $ vi keymap.txt
 
-There are two magic symbols:
-  - both shift keys must be "S-"
-  - caps lock must be "<caps_lock>"
+Any dead keys will likely produce a syslog message detailing the XXXX
+values for setkeycodes.
+
+There are two magic symbols in keymap.txt:
+  - shift keys  must be "S-"
+  - caps lock   must be "<caps_lock>"
 

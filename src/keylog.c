@@ -96,7 +96,7 @@ static void die_ (int line, const char *msg)
 
 static void usage (void)
 {
-	fprintf(stderr, "\nUsage: keylog [-k keyboard] [-m mouse] [-s symbols]\n\n");
+	fprintf(stderr, "\nUsage: keylog [-k eventX] [-m eventY] [-s keymap.txt]\n\n");
 	exit(-1);
 }
 
