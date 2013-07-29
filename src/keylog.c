@@ -295,7 +295,7 @@ static void load_symbols (const struct parms *p, struct state *s)
 	if ((fd = open(p->symbols, O_RDWR)) < 0)
 		die("open");
 
-	if (fstat(fd, &sb) == -1)
+	if (fstat(fd, &sb) < 0)
 		die("fstat");
 
 	if ((map = (char *)mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_PRIVATE,fd,0)) == MAP_FAILED)
