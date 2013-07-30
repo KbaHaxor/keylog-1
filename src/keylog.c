@@ -112,6 +112,16 @@ static void init_priv (void)
 	egid = getegid();
 }
 
+static void show_priv (const char *x)
+{
+	if (0)
+	{
+		fprintf(stderr, "%s:\n", x);
+		fprintf(stderr, "  U: e:%5d  <r:%5d>\n", geteuid(), getuid());
+		fprintf(stderr, "  G: e:%5d  <r:%5d>\n", getegid(), getgid());
+	}
+}
+
 static void take_priv (void)
 {
 	if (setreuid(ruid,euid) < 0)
@@ -119,6 +129,8 @@ static void take_priv (void)
 
 	if (setregid(rgid,egid) < 0)
 		die("setregid");
+
+	show_priv("take");
 }
 
 static void drop_priv (void)
@@ -128,6 +140,8 @@ static void drop_priv (void)
 
 	if (setreuid(euid,ruid) < 0)
 		die("setreuid");
+
+	show_priv("drop");
 }
 
 static void kill_priv (void)
@@ -137,6 +151,8 @@ static void kill_priv (void)
 
 	if (setreuid(ruid,ruid) < 0)
 		die("setreuid");
+
+	show_priv("kill");
 }
 
 // make sure p is of the form "eventN" for integer N
