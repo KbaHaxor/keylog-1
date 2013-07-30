@@ -6,5 +6,5 @@ Set up a manage hook in XMonad to ignore the window.
    keylogManageHook = className =? "Keyloggui" --> doIgnore
 
 Run the collector into the gui with a pipe:
-  $ keylog | keyloggui
+  $ sudo keylog | keyloggui
 

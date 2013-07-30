@@ -97,18 +97,31 @@ static void die_ (int line, const char *msg)
 
 static void usage (void)
 {
-	fprintf(stderr, "\nUsage: keylog [-k eventX] [-m eventY] [-s keymap.txt]\n\n");
+	fprintf(stderr, "\nUsage: sudo keylog [-k eventX] [-m eventY] [-s keymap.txt]\n\n");
 	exit(-1);
 }
 
 static uid_t ruid, euid;
 static gid_t rgid, egid;
 
+static int sudo_env (const char *e)
+{
+	int n;
+
+	if ((e = getenv(e)) == NULL)
+		die("getenv");
+
+	if (sscanf(e, "%d", &n) != 1)
+		die("sscanf");
+
+	return n;
+}
+
 static void init_priv (void)
 {
-	ruid = getuid();
+	ruid = (uid_t) sudo_env("SUDO_UID");
 	euid = geteuid();
-	rgid = getgid();
+	rgid = (gid_t) sudo_env("SUDO_GID");
 	egid = getegid();
 }
 
