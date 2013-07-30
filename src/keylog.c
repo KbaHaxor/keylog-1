@@ -442,12 +442,6 @@ static void show_repeat (struct state *s)
 		printf("+%d", s->repeat);
 }
 
-static void show_string (struct state *s, const char *x)
-{
-	if (!s->disable_output)
-		printf("%s", x);
-}
-
 // filter out S- if event_name() will use other symbols
 static int want_to_see (struct state *s, unsigned short c, int m)
 {
