@@ -8,3 +8,9 @@ Set up a manage hook in XMonad to ignore the window.
 Run the collector into the gui with a pipe:
   $ sudo keylog | keyloggui
 
+The sudo password prompt will likely be piped into the gui and
+disappear, leaving a blank, unresponsive gui window. Either run
+a sudo command in the shell first so the password is cached, or
+just type the password blind and the gui display will start showing
+output.
+
