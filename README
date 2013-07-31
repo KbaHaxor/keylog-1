@@ -12,7 +12,7 @@ Building
 Running
 --------------------------------------------------------------------------------
 To run:
-  $ sudo keylog [-k eventX] [-m eventY] [-s keymap.txt]
+  $ sudo keylog [-k eventX] [-m eventY] [-s keymap.txt] [-t]
 
 The keylog binary must be run with sudo in order to open the device
 files. root privileges are permanently dropped after both files are
@@ -76,3 +76,10 @@ There are two magic symbols in keymap.txt:
   - shift keys  must be "S-"
   - caps lock   must be "<caps_lock>"
 
+
+
+Timestamps
+--------------------------------------------------------------------------------
+The -t argument outputs a timestamp indicator on each keystroke. The
+format is seconds and microseconds after the epoch, separated from the
+key information by a single tab.

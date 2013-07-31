@@ -27,6 +27,7 @@
 #include <sys/types.h>
 #include <sys/select.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <fcntl.h>
 #include <linux/input.h>
 
@@ -45,6 +46,7 @@ struct parms
 	const char *keyboard;
 	const char *mouse;
 	const char *symbols;
+	int timestamps;
 };
 
 struct state
@@ -61,13 +63,15 @@ struct state
 	int shiftcount;
 	int capslock;
 	int disable_output;
+	int timestamps;
 };
 
 static struct parms parms =
 {
 	"event2",
 	"event3",
-	"keymap.txt"
+	"keymap.txt",
+	0
 };
 
 static struct state state =
@@ -78,6 +82,7 @@ static struct state state =
 	{ NULL },
 	{ 0 },
 	{ 0 },
+	0,
 	0,
 	0,
 	0,
@@ -97,7 +102,7 @@ static void die_ (int line, const char *msg)
 
 static void usage (void)
 {
-	fprintf(stderr, "\nUsage: sudo keylog [-k eventX] [-m eventY] [-s keymap.txt]\n\n");
+	fprintf(stderr, "\nUsage: sudo keylog [-k eventX] [-m eventY] [-s keymap.txt] [-t]\n\n");
 	exit(-1);
 }
 
@@ -190,11 +195,12 @@ static void parse_cmdline (int argc, char **argv)
 	{ "keyboard",       required_argument,   0,   'k' },
 	{ "mouse",          required_argument,   0,   'm' },
 	{ "symbols",        required_argument,   0,   's' },
+	{ "timestamps",     required_argument,   0,   't' },
 	};
 
 	char c;
 
-	while ((c = getopt_long(argc, argv, "k:m:s:", opts, NULL)) != -1)
+	while ((c = getopt_long(argc, argv, "k:m:s:t", opts, NULL)) != -1)
 	{
 		switch (c)
 		{
@@ -208,6 +214,10 @@ static void parse_cmdline (int argc, char **argv)
 
 		case 's':
 			parms.symbols = optarg;
+			break;
+
+		case 't':
+			parms.timestamps = 1;
 			break;
 
 		default:
@@ -414,6 +424,7 @@ static void prepare_system (const struct parms *p, struct state *s)
 	kill_priv();
 	load_symbols(p,s);
 	scan_keyboard(s);
+	s->timestamps = p->timestamps;
 }
 
 static const char * event_name (struct state *s, unsigned short c)
@@ -471,6 +482,19 @@ static void show_last (struct state *s)
 		printf("*%d", s->lastcount);
 }
 
+static void show_timestamp (struct state *s)
+{
+	struct timeval tv;
+
+	if (!s->timestamps)
+		return;
+
+	if (gettimeofday(&tv,NULL) < 0)
+		die("gettimeofday");
+
+	printf("\t%ld.%06ld", tv.tv_sec, tv.tv_usec);
+}
+
 static void show_press (struct state *s, unsigned short c)
 {
 	if (s->lastcount > 1)
@@ -482,6 +506,7 @@ static void show_press (struct state *s, unsigned short c)
 		show_modifiers(s,c);
 		show_key(s,c);
 	}
+	show_timestamp(s);
 	flush(s);
 }
 
@@ -530,6 +555,7 @@ static void do_keyboard (struct state *s)
 				s->lastcount = 0;
 			}
 			show_repeat(s);
+			show_timestamp(s);
 			flush(s);
 			s->repeat++;
 		}

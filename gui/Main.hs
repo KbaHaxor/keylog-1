@@ -17,7 +17,7 @@ module Main (main) where
 import Control.Concurrent.MVar (MVar,newMVar,takeMVar,putMVar)
 import Control.Monad.Loops (whileM_)
 import Control.Monad.Trans (liftIO)
-import Data.List (last)
+import Data.List (last,takeWhile)
 import Graphics.UI.Gtk
 import System.IO (Handle,stdin,hGetLine,hReady)
 import System.Posix.IO (stdInput)
@@ -85,7 +85,8 @@ readAll m = whileM_ (readOne m) (return ()) >> updateLabel m >> return True
 readOne :: MVar Ticker -> IO Bool
 readOne m = do
    (Ticker h l ss) <- takeMVar m
-   s <- hGetLine h
+   k <- hGetLine h
+   let s = takeWhile (/= '\t') k
    putMVar m $ Ticker h l (s:ss)
    hReady h
 
