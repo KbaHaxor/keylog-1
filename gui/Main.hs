@@ -117,11 +117,11 @@ processEvents ss@(s:t:u) = (string,list)
                    where
                      fits x = length x <= tickerLen
                      joined = scanl1 join merged
-                     join a b = b ++ sep a ++ a
+                     join a b = b ++ sep ++ a
                        where
-                         sep a | repeat a  = ""
-                               | multi a   = ""
-                               | otherwise = " "
+                         sep | repeat a   = ""
+                             | multi a    = ""
+                             | otherwise  = " "
 
       merged   = if both repeat || both multi
                    then (s:u)
@@ -131,4 +131,3 @@ processEvents ss@(s:t:u) = (string,list)
 
       repeat x = x =~ "^\\+[0-9]"
       multi x  = x =~ "^\\*[0-9]"
-
