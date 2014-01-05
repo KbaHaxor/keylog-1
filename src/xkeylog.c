@@ -381,6 +381,7 @@ static void x_record_cb (XPointer p, XRecordInterceptData* i)
 		xEvent * e = (xEvent *) i->data;
 		BYTE t = e->u.u.type;
 		BYTE d = e->u.u.detail;
+		// KeyButMask m = e->u.keyButtonPointer.state;
 		switch (t)
 		{
 		case KeyPress:
