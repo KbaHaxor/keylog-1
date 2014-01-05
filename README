@@ -9,7 +9,7 @@ Building
 
 
 
-Running
+Running keylog
 --------------------------------------------------------------------------------
 To run:
   $ sudo keylog [-k eventX] [-m eventY] [-s keymap.txt] [-t]
@@ -22,6 +22,25 @@ All keystrokes will be logged on stdout, one line per keystroke. Three
 or more successive identical keystrokes will begin logging as as
 "*NN", with NN incrementing with each repeated keystroke. Holding down
 a key will begin logging as "+NN" when the autorepeat starts.
+
+To suspend logging, hit both shift keys simultaneously. Repeat to
+resume logging. SUSPEND and RESUME tokens will be logged.
+
+Several independent instances can be run at the same time.
+
+
+
+Running xkeylog
+--------------------------------------------------------------------------------
+To run:
+  $ xkeylog [-d display] [-s keymap.txt] [-t]
+
+No root privileges are required, but your X server must have XRECORD
+extension.
+
+All keystrokes will be logged on stdout, one line per keystroke. Three
+or more successive identical keystrokes will begin logging as as
+"*NN", with NN incrementing with each repeated keystroke.
 
 To suspend logging, hit both shift keys simultaneously. Repeat to
 resume logging. SUSPEND and RESUME tokens will be logged.
@@ -48,19 +67,21 @@ Each record specifies how to display a particular keycode.
 
    keycode\tsymbol1\tsymbol2\tismodifier
 
-   - keycode is the code from showkey
+   - keycode is the code from showkey or xmodmap
    - symbol1 is the unshifted symbol to display
    - symbol2 is the shifted symbol to display
    - ismodifier is Y or N (for shift, ctrl, alt, etc)
 
 Any keycodes not defined in keymap.txt will be displayed as <UNDEF>.
 
-A make target is provided to create an initial keymap.txt.
+Make targets are provided to create an initial mapping file.
 
   $ cd src
-  $ rm keymap.txt
+  $ rm keymap.txt xkeymap.txt
   $ make keymap.txt
+  $ make xkeymap.txt
 
+For the console version:
 Use showkey and setkeycodes to identify and enable any problem keys,
 then edit the generated keymap.txt file and restart the logger to
 fine-tune the output.
@@ -72,7 +93,11 @@ fine-tune the output.
 Any dead keys will likely produce a syslog message detailing the XXXX
 values for setkeycodes.
 
-There are two magic symbols in keymap.txt:
+For the X version:
+Incorrect mappings can probably be resolved using some combination of
+xmodmap, xkbmap, or similar...
+
+There are two magic symbols in the map files:
   - shift keys  must be "S-"
   - caps lock   must be "<caps_lock>"
 
