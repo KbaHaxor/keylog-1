@@ -16,4 +16,5 @@ stamp-h1
 
 *.o
 keylog
+xkeylog
 .*.swp
