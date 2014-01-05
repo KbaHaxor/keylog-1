@@ -27,6 +27,7 @@ my %replace =
 	'Insert' => 'ins',
 	'Linefeed' => 'lf',
 	'Return' => 'cr',
+	'Sys_Req' => 'sysrq',
 	'VoidSymbol' => 'void',
 	'ampersand' => '&',
 	'apostrophe' => '\'',
@@ -122,11 +123,14 @@ qw(
 	Left
 	lf
 	Macro
+	Menu
 	Next
 	Num_Lock
 	Pause
+	plusminus
 	Print
 	Prior
+	Redo
 	Remove
 	Right
 	Scroll_Backward
@@ -135,7 +139,9 @@ qw(
 	Select
 	Show_Memory
 	spc
+	sysrq
 	Tab
+	Undo
 	Up
 	void
 );
@@ -178,7 +184,7 @@ while (my $line = <>)
 	exit unless $line[0] eq "keycode";
 	next if $#line < 3;
 	my $s1 = clean($line[3]);
-	my $s2 = clean($line[($line[4] == "NoSymbol" ? 3 : 4)]);
+	my $s2 = clean($line[($line[4] =~ /^NoSymbol$/ ? 3 : 4)]);
 	print sprintf("%d\t%s\t%s\t%s\n", $line[1], $s1, $s2, ismod($line[3]));
 }
 for my $b (1..5)
